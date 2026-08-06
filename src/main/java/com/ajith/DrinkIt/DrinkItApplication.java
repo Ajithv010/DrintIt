@@ -1,4 +1,4 @@
-package com.ajith.DrinkIt;
+package com.ajith.drinkit;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
