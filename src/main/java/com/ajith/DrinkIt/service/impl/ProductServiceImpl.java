@@ -3,6 +3,7 @@ package com.ajith.drinkit.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import com.ajith.drinkit.dto.ProductMapper;
 
 import com.ajith.drinkit.dto.ProductRequest;
 import com.ajith.drinkit.dto.ProductResponse;
@@ -46,33 +47,48 @@ public class ProductServiceImpl implements ProductService {
 
         Product saved = productRepository.save(product);
 
-        return ProductResponse.builder()
-                .id(saved.getId())
-                .name(saved.getName())
-                .description(saved.getDescription())
-                .price(saved.getPrice())
-                .stock(saved.getStock())
-                .brand(saved.getBrand())
-                .imageUrl(saved.getImageUrl())
-                .active(saved.getActive())
-                .categoryId(saved.getCategory().getId())
-                .categoryName(saved.getCategory().getName())
-                .build();
+        return ProductMapper.toResponse(saved);
     }
 
     @Override
     public List<ProductResponse> getAllProducts() {
-        throw new UnsupportedOperationException("Implement later");
+
+        return productRepository.findAll()
+                .stream()
+                .map(ProductMapper::toResponse)
+                .toList();
     }
 
     @Override
     public ProductResponse getProductById(Long id) {
-        throw new UnsupportedOperationException("Implement later");
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        return ProductMapper.toResponse(product);
     }
 
     @Override
     public ProductResponse updateProduct(Long id, ProductRequest request) {
-        throw new UnsupportedOperationException("Implement later");
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setBrand(request.getBrand());
+        product.setImageUrl(request.getImageUrl());
+        product.setActive(request.getActive());
+        product.setCategory(category);
+
+        Product updatedProduct = productRepository.save(product);
+
+        return ProductMapper.toResponse(updatedProduct);
     }
 
     @Override
@@ -81,6 +97,11 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        productRepository.delete(product);
+        try {
+            productRepository.delete(product);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Cannot delete product because it is associated with existing orders.");
+        }
     }
 }

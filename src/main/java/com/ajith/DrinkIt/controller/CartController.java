@@ -62,4 +62,14 @@ public class CartController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/clear")
+    public ResponseEntity<Void> clearCart(Authentication authentication) {
+
+        String email = authentication.getName();
+
+        cartService.clearCart(email);
+
+        return ResponseEntity.noContent().build();
+    }
 }
