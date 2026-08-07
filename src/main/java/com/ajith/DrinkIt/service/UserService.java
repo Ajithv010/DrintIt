@@ -1,15 +1,17 @@
 package com.ajith.drinkit.service;
 
+import com.ajith.drinkit.dto.UserRequest;
+import com.ajith.drinkit.dto.UserResponse;
 import com.ajith.drinkit.entity.User;
 import java.util.List;
 
 public interface UserService {
 
-    User registerUser(User user);
+    UserResponse registerUser(UserRequest request);
 
-    List<User> getAllUsers();
+    List<UserResponse> getAllUsers();
 
-    User getUserById(Long id);
+    UserResponse getUserById(Long id);
 
     User updateUser(Long id, User user);
 

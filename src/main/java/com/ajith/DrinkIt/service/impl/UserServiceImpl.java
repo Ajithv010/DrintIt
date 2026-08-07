@@ -5,7 +5,10 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ajith.drinkit.dto.UserRequest;
+import com.ajith.drinkit.dto.UserResponse;
 import com.ajith.drinkit.entity.User;
+import com.ajith.drinkit.dto.UserMapper;
 import com.ajith.drinkit.repository.UserRepository;
 import com.ajith.drinkit.service.UserService;
 
@@ -23,26 +26,38 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User registerUser(User user) {
+    public UserResponse registerUser(UserRequest request) {
 
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
 
+        User user = UserMapper.toEntity(request);
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setEnabled(true);
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return UserMapper.toResponse(savedUser);
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
+    public UserResponse getUserById(Long id) {
+
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return UserMapper.toResponse(user);
     }
 
     @Override
@@ -56,10 +71,11 @@ public class UserServiceImpl implements UserService {
         existingUser.setEmail(user.getEmail());
         existingUser.setPhoneNumber(user.getPhoneNumber());
 
-        // Encrypt password again if it is updated
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
 
-        existingUser.setEnabled(user.isEnabled());
+        existingUser.setEnabled(user.getEnabled());
 
         return userRepository.save(existingUser);
     }

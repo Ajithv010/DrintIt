@@ -29,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
+        System.out.println("===== JWT FILTER EXECUTED =====");
 
         System.out.println("Request URI: " + request.getRequestURI());
 

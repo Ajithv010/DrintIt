@@ -1,12 +1,15 @@
 package com.ajith.drinkit.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.ajith.drinkit.dto.UserRequest;
+import com.ajith.drinkit.dto.UserResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.UserService;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -19,11 +22,12 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody User user) {
+    public ResponseEntity<UserResponse> registerUser(
+            @RequestBody UserRequest request) {
 
-        User savedUser = userService.registerUser(user);
-
-        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                userService.registerUser(request),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/test")
@@ -32,12 +36,13 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
