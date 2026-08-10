@@ -1,14 +1,14 @@
 package com.ajith.drinkit.service;
 
-import com.ajith.drinkit.entity.Cart;
+import com.ajith.drinkit.dto.CartResponse;
 
 public interface CartService {
 
-    Cart addToCart(String email, Long productId, Integer quantity);
+    CartResponse addToCart(String email, Long productId, Integer quantity);
 
-    Cart getCart(String email);
+    CartResponse getCart(String email);
 
-    Cart updateQuantity(String email, Long productId, Integer quantity);
+    CartResponse updateQuantity(String email, Long productId, Integer quantity);
 
     void removeFromCart(String email, Long productId);
 

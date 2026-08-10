@@ -4,10 +4,12 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import com.ajith.drinkit.dto.CartResponse;
 import com.ajith.drinkit.entity.Cart;
 import com.ajith.drinkit.entity.CartItem;
 import com.ajith.drinkit.entity.Product;
 import com.ajith.drinkit.entity.User;
+import com.ajith.drinkit.mapper.CartMapper;
 import com.ajith.drinkit.repository.CartItemRepository;
 import com.ajith.drinkit.repository.CartRepository;
 import com.ajith.drinkit.repository.ProductRepository;
@@ -17,127 +19,144 @@ import com.ajith.drinkit.service.CartService;
 @Service
 public class CartServiceImpl implements CartService {
 
-    private final CartRepository cartRepository;
-    private final CartItemRepository cartItemRepository;
-    private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+        private final CartRepository cartRepository;
+        private final CartItemRepository cartItemRepository;
+        private final ProductRepository productRepository;
+        private final UserRepository userRepository;
 
-    public CartServiceImpl(
-            CartRepository cartRepository,
-            CartItemRepository cartItemRepository,
-            ProductRepository productRepository,
-            UserRepository userRepository) {
+        public CartServiceImpl(
+                        CartRepository cartRepository,
+                        CartItemRepository cartItemRepository,
+                        ProductRepository productRepository,
+                        UserRepository userRepository) {
 
-        this.cartRepository = cartRepository;
-        this.cartItemRepository = cartItemRepository;
-        this.productRepository = productRepository;
-        this.userRepository = userRepository;
-    }
-
-    @Override
-    public Cart addToCart(String email, Long productId, Integer quantity) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Cart cart = cartRepository.findByUser(user)
-                .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setUser(user);
-                    return cartRepository.save(newCart);
-                });
-
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        Optional<CartItem> existingItem = cartItemRepository.findByCartAndProduct(cart, product);
-
-        if (existingItem.isPresent()) {
-
-            CartItem item = existingItem.get();
-            item.setQuantity(item.getQuantity() + quantity);
-            cartItemRepository.save(item);
-
-        } else {
-
-            CartItem item = new CartItem();
-            item.setCart(cart);
-            item.setProduct(product);
-            item.setQuantity(quantity);
-
-            cartItemRepository.save(item);
-
-            cart.getItems().add(item);
+                this.cartRepository = cartRepository;
+                this.cartItemRepository = cartItemRepository;
+                this.productRepository = productRepository;
+                this.userRepository = userRepository;
         }
 
-        return cartRepository.save(cart);
-    }
+        @Override
+        public CartResponse addToCart(
+                        String email,
+                        Long productId,
+                        Integer quantity) {
 
-    @Override
-    public Cart getCart(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                Cart cart = cartRepository.findByUser(user)
+                                .orElseGet(() -> {
+                                        Cart newCart = new Cart();
+                                        newCart.setUser(user);
+                                        return cartRepository.save(newCart);
+                                });
 
-        return cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-    }
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-    @Override
-    public Cart updateQuantity(String email, Long productId, Integer quantity) {
+                Optional<CartItem> existingItem = cartItemRepository.findByCartAndProduct(cart, product);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                if (existingItem.isPresent()) {
 
-        Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                        CartItem item = existingItem.get();
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                        item.setQuantity(item.getQuantity() + quantity);
 
-        CartItem item = cartItemRepository.findByCartAndProduct(cart, product)
-                .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+                        cartItemRepository.save(item);
 
-        item.setQuantity(quantity);
+                } else {
 
-        cartItemRepository.save(item);
+                        CartItem item = new CartItem();
 
-        return cart;
-    }
+                        item.setCart(cart);
+                        item.setProduct(product);
+                        item.setQuantity(quantity);
 
-    @Override
-    public void removeFromCart(String email, Long productId) {
+                        cartItemRepository.save(item);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                        cart.getItems().add(item);
+                }
 
-        Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                Cart savedCart = cartRepository.save(cart);
 
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                return CartMapper.toResponse(savedCart);
+        }
 
-        CartItem item = cartItemRepository.findByCartAndProduct(cart, product)
-                .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+        @Override
+        public CartResponse getCart(String email) {
 
-        cart.getItems().remove(item);
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        cartItemRepository.delete(item);
+                Cart cart = cartRepository.findByUser(user)
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        cartRepository.save(cart);
-    }
+                return CartMapper.toResponse(cart);
+        }
 
-    @Override
-    public void clearCart(String email) {
+        @Override
+        public CartResponse updateQuantity(
+                        String email,
+                        Long productId,
+                        Integer quantity) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                Cart cart = cartRepository.findByUser(user)
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        cart.getItems().clear();
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        cartRepository.save(cart);
-    }
+                CartItem item = cartItemRepository
+                                .findByCartAndProduct(cart, product)
+                                .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+
+                item.setQuantity(quantity);
+
+                cartItemRepository.save(item);
+
+                return CartMapper.toResponse(cart);
+        }
+
+        @Override
+        public void removeFromCart(
+                        String email,
+                        Long productId) {
+
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                Cart cart = cartRepository.findByUser(user)
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+                Product product = productRepository.findById(productId)
+                                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                CartItem item = cartItemRepository
+                                .findByCartAndProduct(cart, product)
+                                .orElseThrow(() -> new RuntimeException("Product not found in cart"));
+
+                cart.getItems().remove(item);
+
+                cartItemRepository.delete(item);
+
+                cartRepository.save(cart);
+        }
+
+        @Override
+        public void clearCart(String email) {
+
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+
+                Cart cart = cartRepository.findByUser(user)
+                                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+                cart.getItems().clear();
+
+                cartRepository.save(cart);
+        }
 }

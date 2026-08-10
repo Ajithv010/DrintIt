@@ -4,39 +4,37 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.ajith.drinkit.dto.OrderResponse;
 import com.ajith.drinkit.entity.Cart;
 import com.ajith.drinkit.entity.CartItem;
 import com.ajith.drinkit.entity.Order;
 import com.ajith.drinkit.entity.OrderItem;
+import com.ajith.drinkit.entity.User;
+import com.ajith.drinkit.mapper.OrderMapper;
 import com.ajith.drinkit.repository.CartRepository;
-import com.ajith.drinkit.repository.OrderItemRepository;
 import com.ajith.drinkit.repository.OrderRepository;
 import com.ajith.drinkit.repository.UserRepository;
 import com.ajith.drinkit.service.OrderService;
-import com.ajith.drinkit.entity.User;
 
 @Service
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
-            OrderItemRepository orderItemRepository,
             CartRepository cartRepository,
             UserRepository userRepository) {
 
         this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
         this.cartRepository = cartRepository;
         this.userRepository = userRepository;
     }
 
     @Override
-    public Order placeOrder(String email) {
+    public OrderResponse placeOrder(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -49,6 +47,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order order = new Order();
+
         order.setUser(user);
         order.setOrderDate(java.time.LocalDateTime.now());
         order.setStatus("PLACED");
@@ -66,7 +65,8 @@ public class OrderServiceImpl implements OrderService {
 
             order.getItems().add(orderItem);
 
-            total += cartItem.getProduct().getPrice() * cartItem.getQuantity();
+            total += cartItem.getProduct().getPrice()
+                    * cartItem.getQuantity();
         }
 
         order.setTotalAmount(total);
@@ -76,20 +76,25 @@ public class OrderServiceImpl implements OrderService {
         cart.getItems().clear();
         cartRepository.save(cart);
 
-        return savedOrder;
+        return OrderMapper.toResponse(savedOrder);
     }
 
     @Override
-    public List<Order> getMyOrders(String email) {
+    public List<OrderResponse> getMyOrders(String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return orderRepository.findByUser(user);
+        return orderRepository.findByUser(user)
+                .stream()
+                .map(OrderMapper::toResponse)
+                .toList();
     }
 
     @Override
-    public Order getOrderById(String email, Long orderId) {
+    public OrderResponse getOrderById(
+            String email,
+            Long orderId) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -101,6 +106,6 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Access denied");
         }
 
-        return order;
+        return OrderMapper.toResponse(order);
     }
 }

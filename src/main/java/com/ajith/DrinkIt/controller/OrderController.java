@@ -5,9 +5,13 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.ajith.drinkit.entity.Order;
+import com.ajith.drinkit.dto.OrderResponse;
 import com.ajith.drinkit.service.OrderService;
 
 @RestController
@@ -21,30 +25,34 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> placeOrder(Authentication authentication) {
+    public ResponseEntity<OrderResponse> placeOrder(
+            Authentication authentication) {
 
         String email = authentication.getName();
 
-        Order order = orderService.placeOrder(email);
+        OrderResponse order = orderService.placeOrder(email);
 
         return new ResponseEntity<>(order, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<List<Order>> getMyOrders(Authentication authentication) {
+    public ResponseEntity<List<OrderResponse>> getMyOrders(
+            Authentication authentication) {
 
         String email = authentication.getName();
 
-        return ResponseEntity.ok(orderService.getMyOrders(email));
+        return ResponseEntity.ok(
+                orderService.getMyOrders(email));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(
+    public ResponseEntity<OrderResponse> getOrderById(
             Authentication authentication,
             @PathVariable Long id) {
 
         String email = authentication.getName();
 
-        return ResponseEntity.ok(orderService.getOrderById(email, id));
+        return ResponseEntity.ok(
+                orderService.getOrderById(email, id));
     }
 }

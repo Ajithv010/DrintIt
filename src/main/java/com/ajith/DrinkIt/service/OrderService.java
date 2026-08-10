@@ -2,14 +2,13 @@ package com.ajith.drinkit.service;
 
 import java.util.List;
 
-import com.ajith.drinkit.entity.Order;
+import com.ajith.drinkit.dto.OrderResponse;
 
 public interface OrderService {
 
-    Order placeOrder(String email);
+    OrderResponse placeOrder(String email);
 
-    List<Order> getMyOrders(String email);
+    List<OrderResponse> getMyOrders(String email);
 
-    Order getOrderById(String email, Long orderId);
-
+    OrderResponse getOrderById(String email, Long orderId);
 }

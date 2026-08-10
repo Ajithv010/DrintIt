@@ -3,9 +3,15 @@ package com.ajith.drinkit.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.ajith.drinkit.entity.Cart;
+import com.ajith.drinkit.dto.CartResponse;
 import com.ajith.drinkit.service.CartService;
 
 @RestController
@@ -19,28 +25,33 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Cart> addToCart(
+    public ResponseEntity<CartResponse> addToCart(
             Authentication authentication,
             @RequestParam Long productId,
             @RequestParam Integer quantity) {
 
         String email = authentication.getName();
 
-        Cart cart = cartService.addToCart(email, productId, quantity);
+        CartResponse cart = cartService.addToCart(
+                email,
+                productId,
+                quantity);
 
         return new ResponseEntity<>(cart, HttpStatus.CREATED);
     }
 
     @GetMapping
-    public ResponseEntity<Cart> getCart(Authentication authentication) {
+    public ResponseEntity<CartResponse> getCart(
+            Authentication authentication) {
 
         String email = authentication.getName();
 
-        return ResponseEntity.ok(cartService.getCart(email));
+        return ResponseEntity.ok(
+                cartService.getCart(email));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Cart> updateQuantity(
+    public ResponseEntity<CartResponse> updateQuantity(
             Authentication authentication,
             @RequestParam Long productId,
             @RequestParam Integer quantity) {
@@ -48,7 +59,10 @@ public class CartController {
         String email = authentication.getName();
 
         return ResponseEntity.ok(
-                cartService.updateQuantity(email, productId, quantity));
+                cartService.updateQuantity(
+                        email,
+                        productId,
+                        quantity));
     }
 
     @DeleteMapping("/remove")
@@ -64,7 +78,8 @@ public class CartController {
     }
 
     @DeleteMapping("/clear")
-    public ResponseEntity<Void> clearCart(Authentication authentication) {
+    public ResponseEntity<Void> clearCart(
+            Authentication authentication) {
 
         String email = authentication.getName();
 
