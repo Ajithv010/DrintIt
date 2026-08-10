@@ -1,5 +1,6 @@
 package com.ajith.drinkit.security;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -16,43 +17,30 @@ public class JwtService {
 
     private static final String SECRET = "mysecretkeymysecretkeymysecretkey12";
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private final Key key = Keys.hmacShaKeyFor(
+            SECRET.getBytes(StandardCharsets.UTF_8));
 
     public String generateToken(String email) {
 
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .expiration(
+                        new Date(
+                                System.currentTimeMillis()
+                                        + 1000 * 60 * 60))
                 .signWith((SecretKey) key)
                 .compact();
     }
 
     public String extractEmail(String token) {
 
-        try {
-            Claims claims = Jwts.parser()
-                    .verifyWith((SecretKey) key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+        Claims claims = Jwts.parser()
+                .verifyWith((SecretKey) key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
-            return claims.getSubject();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-    }
-
-    public boolean isTokenValid(String token) {
-
-        try {
-            extractEmail(token);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
+        return claims.getSubject();
     }
 }

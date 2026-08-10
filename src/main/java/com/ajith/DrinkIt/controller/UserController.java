@@ -4,7 +4,15 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.ajith.drinkit.dto.UserRequest;
 import com.ajith.drinkit.dto.UserResponse;
@@ -21,6 +29,10 @@ public class UserController {
         this.userService = userService;
     }
 
+    // =========================
+    // PUBLIC
+    // =========================
+
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(
             @RequestBody UserRequest request) {
@@ -30,35 +42,72 @@ public class UserController {
                 HttpStatus.CREATED);
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "User Controller Working";
+    // =========================
+    // CURRENT USER
+    // =========================
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(
+            Authentication authentication) {
+
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
+
+        return ResponseEntity.ok(
+                userService.getMyProfile(email));
     }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            Authentication authentication,
+            @RequestBody UserRequest request) {
+
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
+
+        return ResponseEntity.ok(
+                userService.updateMyProfile(
+                        email,
+                        request));
+    }
+
+    // =========================
+    // ADMIN ONLY
+    // =========================
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+
+        return ResponseEntity.ok(
+                userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(
+            @PathVariable Long id) {
 
-        return ResponseEntity.ok(userService.getUserById(id));
+        return ResponseEntity.ok(
+                userService.getUserById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
-            @RequestBody User user) {
+            @RequestBody UserRequest request) {
 
-        return ResponseEntity.ok(userService.updateUser(id, user));
+        return ResponseEntity.ok(
+                userService.updateUser(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<String> deleteUser(
+            @PathVariable Long id) {
 
         userService.deleteUser(id);
 
-        return ResponseEntity.ok("User deleted successfully");
+        return ResponseEntity.ok(
+                "User deleted successfully");
     }
 }
