@@ -15,8 +15,14 @@ import lombok.Setter;
 public class OrderResponse {
 
     private Long orderId;
+
     private LocalDateTime orderDate;
+
     private String status;
+
     private List<OrderItemResponse> items;
+
     private Double totalAmount;
+
+    private AddressResponse deliveryAddress;
 }

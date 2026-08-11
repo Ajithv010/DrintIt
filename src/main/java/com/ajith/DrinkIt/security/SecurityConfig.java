@@ -192,6 +192,30 @@ public class SecurityConfig {
                                                 .hasRole("ADMIN")
 
                                                 // =========================
+                                                // CART
+                                                // CUSTOMER + ADMIN
+                                                // =========================
+
+                                                .requestMatchers(
+                                                                "/api/cart/**")
+                                                .hasAnyRole("CUSTOMER", "ADMIN")
+
+                                                // =========================
+                                                // ORDERS
+                                                // CUSTOMER ONLY
+                                                // =========================
+
+                                                .requestMatchers(
+                                                                "/api/orders/**")
+                                                .hasRole("CUSTOMER")
+                                                .requestMatchers("/api/admin/orders/**")
+                                                .hasRole("ADMIN")
+                                                .requestMatchers("/api/payments/**")
+                                                .hasRole("CUSTOMER")
+                                                .requestMatchers("/api/addresses/**")
+                                                .hasRole("CUSTOMER")
+
+                                                // =========================
                                                 // EVERYTHING ELSE
                                                 // =========================
 

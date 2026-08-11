@@ -7,16 +7,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ajith.drinkit.dto.OrderResponse;
+import com.ajith.drinkit.entity.Address;
 import com.ajith.drinkit.entity.Cart;
 import com.ajith.drinkit.entity.CartItem;
 import com.ajith.drinkit.entity.Order;
 import com.ajith.drinkit.entity.OrderItem;
+import com.ajith.drinkit.entity.OrderStatus;
 import com.ajith.drinkit.entity.Product;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.exception.AccessDeniedException;
 import com.ajith.drinkit.exception.InsufficientStockException;
+import com.ajith.drinkit.exception.InvalidCartOperationException;
+import com.ajith.drinkit.exception.InvalidOrderStatusException;
 import com.ajith.drinkit.exception.ResourceNotFoundException;
 import com.ajith.drinkit.mapper.OrderMapper;
+import com.ajith.drinkit.repository.AddressRepository;
 import com.ajith.drinkit.repository.CartRepository;
 import com.ajith.drinkit.repository.OrderRepository;
 import com.ajith.drinkit.repository.ProductRepository;
@@ -26,126 +31,333 @@ import com.ajith.drinkit.service.OrderService;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderRepository orderRepository;
-    private final CartRepository cartRepository;
-    private final UserRepository userRepository;
-    private final ProductRepository productRepository;
+        private final OrderRepository orderRepository;
+        private final CartRepository cartRepository;
+        private final UserRepository userRepository;
+        private final ProductRepository productRepository;
+        private final AddressRepository addressRepository;
 
-    public OrderServiceImpl(
-            OrderRepository orderRepository,
-            CartRepository cartRepository,
-            UserRepository userRepository,
-            ProductRepository productRepository) {
+        public OrderServiceImpl(
+                        OrderRepository orderRepository,
+                        CartRepository cartRepository,
+                        UserRepository userRepository,
+                        ProductRepository productRepository,
+                        AddressRepository addressRepository) {
 
-        this.orderRepository = orderRepository;
-        this.cartRepository = cartRepository;
-        this.userRepository = userRepository;
-        this.productRepository = productRepository;
-    }
-
-    @Override
-    @Transactional
-    public OrderResponse placeOrder(String email) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
-
-        if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+                this.orderRepository = orderRepository;
+                this.cartRepository = cartRepository;
+                this.userRepository = userRepository;
+                this.productRepository = productRepository;
+                this.addressRepository = addressRepository;
         }
 
-        Order order = new Order();
+        // =========================
+        // PLACE ORDER / CHECKOUT
+        // =========================
 
-        order.setUser(user);
-        order.setOrderDate(LocalDateTime.now());
-        order.setStatus("PLACED");
+        @Override
+        @Transactional
+        public OrderResponse placeOrder(
+                        String email,
+                        Long addressId) {
 
-        double total = 0;
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-        for (CartItem cartItem : cart.getItems()) {
+                // =========================
+                // FIND USER'S ADDRESS
+                // =========================
 
-            Product product = cartItem.getProduct();
+                Address address = addressRepository
+                                .findByIdAndUser(addressId, user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Address not found"));
 
-            // Check product status
-            if (!product.getActive()) {
-                throw new RuntimeException(
-                        "Product is inactive: " + product.getName());
-            }
+                // =========================
+                // FIND CART
+                // =========================
 
-            // Check stock
-            if (cartItem.getQuantity() > product.getStock()) {
-                throw new InsufficientStockException(
-                        "Insufficient stock for product: "
-                                + product.getName());
-            }
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Cart not found"));
 
-            // Create OrderItem
-            OrderItem orderItem = new OrderItem();
+                // =========================
+                // CHECK CART
+                // =========================
 
-            orderItem.setOrder(order);
-            orderItem.setProduct(product);
-            orderItem.setQuantity(cartItem.getQuantity());
-            orderItem.setPrice(product.getPrice());
+                if (cart.getItems().isEmpty()) {
 
-            order.getItems().add(orderItem);
+                        throw new InvalidCartOperationException(
+                                        "Cart is empty");
+                }
 
-            // Calculate total
-            total += product.getPrice()
-                    * cartItem.getQuantity();
+                // =========================
+                // CREATE ORDER
+                // =========================
 
-            // Reduce stock
-            product.setStock(
-                    product.getStock()
-                            - cartItem.getQuantity());
+                Order order = new Order();
 
-            productRepository.save(product);
+                order.setUser(user);
+                order.setDeliveryAddress(address);
+                order.setCreatedAt(LocalDateTime.now());
+                order.setStatus(OrderStatus.PENDING);
+
+                double total = 0.0;
+
+                // =========================
+                // PROCESS CART ITEMS
+                // =========================
+
+                for (CartItem cartItem : cart.getItems()) {
+
+                        Product product = cartItem.getProduct();
+
+                        // =========================
+                        // PRODUCT STATUS
+                        // =========================
+
+                        if (!product.getActive()) {
+
+                                throw new InvalidCartOperationException(
+                                                "Product is inactive: "
+                                                                + product.getName());
+                        }
+
+                        // =========================
+                        // STOCK VALIDATION
+                        // =========================
+
+                        if (cartItem.getQuantity() > product.getStock()) {
+
+                                throw new InsufficientStockException(
+                                                "Insufficient stock for product: "
+                                                                + product.getName());
+                        }
+
+                        // =========================
+                        // CREATE ORDER ITEM
+                        // =========================
+
+                        OrderItem orderItem = new OrderItem();
+
+                        orderItem.setOrder(order);
+                        orderItem.setProduct(product);
+
+                        orderItem.setQuantity(
+                                        cartItem.getQuantity());
+
+                        // Save price at purchase time
+                        orderItem.setPrice(
+                                        product.getPrice());
+
+                        // Calculate subtotal
+                        double subtotal = product.getPrice()
+                                        * cartItem.getQuantity();
+
+                        orderItem.setSubtotal(subtotal);
+
+                        order.getItems().add(orderItem);
+
+                        // =========================
+                        // CALCULATE TOTAL
+                        // =========================
+
+                        total += subtotal;
+
+                        // =========================
+                        // REDUCE STOCK
+                        // =========================
+
+                        product.setStock(
+                                        product.getStock()
+                                                        - cartItem.getQuantity());
+
+                        productRepository.save(product);
+                }
+
+                // =========================
+                // SET ORDER TOTAL
+                // =========================
+
+                order.setTotalAmount(total);
+
+                // =========================
+                // SAVE ORDER
+                // =========================
+
+                Order savedOrder = orderRepository.save(order);
+
+                // =========================
+                // CLEAR CART
+                // =========================
+
+                cart.getItems().clear();
+
+                cartRepository.save(cart);
+
+                return OrderMapper.toResponse(
+                                savedOrder);
         }
 
-        // Set total
-        order.setTotalAmount(total);
+        // =========================
+        // GET MY ORDERS
+        // =========================
 
-        // Save order
-        Order savedOrder = orderRepository.save(order);
+        @Override
+        public List<OrderResponse> getMyOrders(
+                        String email) {
 
-        // Clear cart
-        cart.getItems().clear();
-        cartRepository.save(cart);
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-        return OrderMapper.toResponse(savedOrder);
-    }
-
-    @Override
-    public List<OrderResponse> getMyOrders(String email) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        return orderRepository.findByUser(user)
-                .stream()
-                .map(OrderMapper::toResponse)
-                .toList();
-    }
-
-    @Override
-    public OrderResponse getOrderById(
-            String email,
-            Long orderId) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-
-        // User can access only their own order
-        if (!order.getUser().getId().equals(user.getId())) {
-            throw new AccessDeniedException(
-                    "You do not have permission to access this order");
+                return orderRepository
+                                .findByUser(user)
+                                .stream()
+                                .map(OrderMapper::toResponse)
+                                .toList();
         }
 
-        return OrderMapper.toResponse(order);
-    }
+        // =========================
+        // GET MY ORDER BY ID
+        // =========================
+
+        @Override
+        public OrderResponse getOrderById(
+                        String email,
+                        Long orderId) {
+
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
+
+                Order order = orderRepository
+                                .findById(orderId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Order not found"));
+
+                // Customer can access only their own order
+                if (!order.getUser()
+                                .getId()
+                                .equals(user.getId())) {
+
+                        throw new AccessDeniedException(
+                                        "You do not have permission to access this order");
+                }
+
+                return OrderMapper.toResponse(order);
+        }
+
+        // =========================
+        // GET ALL ORDERS - ADMIN
+        // =========================
+
+        @Override
+        public List<OrderResponse> getAllOrders() {
+
+                return orderRepository
+                                .findAll()
+                                .stream()
+                                .map(OrderMapper::toResponse)
+                                .toList();
+        }
+
+        // =========================
+        // UPDATE ORDER STATUS - ADMIN
+        // =========================
+
+        @Override
+        public OrderResponse updateOrderStatus(
+                        Long orderId,
+                        String status) {
+
+                Order order = orderRepository
+                                .findById(orderId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Order not found"));
+
+                // =========================
+                // VALIDATE STATUS INPUT
+                // =========================
+
+                if (status == null ||
+                                status.isBlank()) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Order status is required");
+                }
+
+                OrderStatus newStatus;
+
+                try {
+
+                        newStatus = OrderStatus.valueOf(
+                                        status.trim().toUpperCase());
+
+                } catch (IllegalArgumentException ex) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Invalid order status: " + status);
+                }
+
+                OrderStatus currentStatus = order.getStatus();
+
+                // =========================
+                // VALID STATUS TRANSITIONS
+                // =========================
+
+                if (currentStatus == OrderStatus.PENDING) {
+
+                        if (newStatus != OrderStatus.CONFIRMED &&
+                                        newStatus != OrderStatus.CANCELLED) {
+
+                                throw new InvalidOrderStatusException(
+                                                "Cannot change order status from "
+                                                                + currentStatus
+                                                                + " to "
+                                                                + newStatus);
+                        }
+                }
+
+                else if (currentStatus == OrderStatus.CONFIRMED) {
+
+                        if (newStatus != OrderStatus.DELIVERED &&
+                                        newStatus != OrderStatus.CANCELLED) {
+
+                                throw new InvalidOrderStatusException(
+                                                "Cannot change order status from "
+                                                                + currentStatus
+                                                                + " to "
+                                                                + newStatus);
+                        }
+                }
+
+                else if (currentStatus == OrderStatus.DELIVERED) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Delivered orders cannot be modified");
+                }
+
+                else if (currentStatus == OrderStatus.CANCELLED) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Cancelled orders cannot be modified");
+                }
+
+                // =========================
+                // UPDATE STATUS
+                // =========================
+
+                order.setStatus(newStatus);
+
+                Order updatedOrder = orderRepository.save(order);
+
+                return OrderMapper.toResponse(
+                                updatedOrder);
+        }
 }

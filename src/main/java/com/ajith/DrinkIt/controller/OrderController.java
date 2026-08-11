@@ -5,13 +5,10 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.ajith.drinkit.dto.OrderResponse;
+import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.OrderService;
 
 @RestController
@@ -24,35 +21,55 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    // =========================
+    // PLACE ORDER
+    // =========================
+
     @PostMapping
     public ResponseEntity<OrderResponse> placeOrder(
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestParam Long addressId) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
 
-        OrderResponse order = orderService.placeOrder(email);
+        OrderResponse response = orderService.placeOrder(
+                user.getEmail(),
+                addressId);
 
-        return new ResponseEntity<>(order, HttpStatus.CREATED);
+        return new ResponseEntity<>(
+                response,
+                HttpStatus.CREATED);
     }
+
+    // =========================
+    // GET MY ORDERS
+    // =========================
 
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getMyOrders(
             Authentication authentication) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
-                orderService.getMyOrders(email));
+                orderService.getMyOrders(
+                        user.getEmail()));
     }
 
-    @GetMapping("/{id}")
+    // =========================
+    // GET ORDER BY ID
+    // =========================
+
+    @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponse> getOrderById(
             Authentication authentication,
-            @PathVariable Long id) {
+            @PathVariable Long orderId) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
 
         return ResponseEntity.ok(
-                orderService.getOrderById(email, id));
+                orderService.getOrderById(
+                        user.getEmail(),
+                        orderId));
     }
 }

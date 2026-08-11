@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+        // =========================
+        // RESOURCE NOT FOUND
+        // =========================
+
         @ExceptionHandler(ResourceNotFoundException.class)
         public ResponseEntity<Map<String, Object>> handleNotFound(
                         ResourceNotFoundException ex) {
@@ -19,6 +23,10 @@ public class GlobalExceptionHandler {
                                 HttpStatus.NOT_FOUND,
                                 ex.getMessage());
         }
+
+        // =========================
+        // INSUFFICIENT STOCK
+        // =========================
 
         @ExceptionHandler(InsufficientStockException.class)
         public ResponseEntity<Map<String, Object>> handleInsufficientStock(
@@ -29,6 +37,10 @@ public class GlobalExceptionHandler {
                                 ex.getMessage());
         }
 
+        // =========================
+        // ACCESS DENIED
+        // =========================
+
         @ExceptionHandler(AccessDeniedException.class)
         public ResponseEntity<Map<String, Object>> handleAccessDenied(
                         AccessDeniedException ex) {
@@ -37,6 +49,10 @@ public class GlobalExceptionHandler {
                                 HttpStatus.FORBIDDEN,
                                 ex.getMessage());
         }
+
+        // =========================
+        // AUTHENTICATION
+        // =========================
 
         @ExceptionHandler(AuthenticationException.class)
         public ResponseEntity<Map<String, Object>> handleAuthenticationException(
@@ -47,14 +63,9 @@ public class GlobalExceptionHandler {
                                 ex.getMessage());
         }
 
-        @ExceptionHandler(RuntimeException.class)
-        public ResponseEntity<Map<String, Object>> handleRuntimeException(
-                        RuntimeException ex) {
-
-                return buildResponse(
-                                HttpStatus.BAD_REQUEST,
-                                ex.getMessage());
-        }
+        // =========================
+        // INVALID CART OPERATION
+        // =========================
 
         @ExceptionHandler(InvalidCartOperationException.class)
         public ResponseEntity<Map<String, Object>> handleInvalidCartOperation(
@@ -64,6 +75,36 @@ public class GlobalExceptionHandler {
                                 HttpStatus.BAD_REQUEST,
                                 ex.getMessage());
         }
+
+        // =========================
+        // INVALID ORDER STATUS
+        // =========================
+
+        @ExceptionHandler(InvalidOrderStatusException.class)
+        public ResponseEntity<Map<String, Object>> handleInvalidOrderStatus(
+                        InvalidOrderStatusException ex) {
+
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                ex.getMessage());
+        }
+
+        // =========================
+        // OTHER RUNTIME EXCEPTIONS
+        // =========================
+
+        @ExceptionHandler(RuntimeException.class)
+        public ResponseEntity<Map<String, Object>> handleRuntimeException(
+                        RuntimeException ex) {
+
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                ex.getMessage());
+        }
+
+        // =========================
+        // COMMON RESPONSE
+        // =========================
 
         private ResponseEntity<Map<String, Object>> buildResponse(
                         HttpStatus status,
@@ -78,5 +119,14 @@ public class GlobalExceptionHandler {
                 return ResponseEntity
                                 .status(status)
                                 .body(response);
+        }
+
+        @ExceptionHandler(InvalidPaymentException.class)
+        public ResponseEntity<Map<String, Object>> handleInvalidPayment(
+                        InvalidPaymentException ex) {
+
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                ex.getMessage());
         }
 }

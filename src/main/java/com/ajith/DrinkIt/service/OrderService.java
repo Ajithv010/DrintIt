@@ -6,9 +6,20 @@ import com.ajith.drinkit.dto.OrderResponse;
 
 public interface OrderService {
 
-    OrderResponse placeOrder(String email);
+    OrderResponse placeOrder(
+            String email,
+            Long addressId);
 
-    List<OrderResponse> getMyOrders(String email);
+    List<OrderResponse> getMyOrders(
+            String email);
 
-    OrderResponse getOrderById(String email, Long orderId);
+    OrderResponse getOrderById(
+            String email,
+            Long orderId);
+
+    List<OrderResponse> getAllOrders();
+
+    OrderResponse updateOrderStatus(
+            Long orderId,
+            String status);
 }
