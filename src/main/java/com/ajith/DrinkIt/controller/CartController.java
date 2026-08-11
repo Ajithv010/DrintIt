@@ -5,13 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ajith.drinkit.dto.CartResponse;
+import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.CartService;
 
 @RestController
@@ -24,67 +26,143 @@ public class CartController {
         this.cartService = cartService;
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<CartResponse> addToCart(
-            Authentication authentication,
-            @RequestParam Long productId,
-            @RequestParam Integer quantity) {
-
-        String email = authentication.getName();
-
-        CartResponse cart = cartService.addToCart(
-                email,
-                productId,
-                quantity);
-
-        return new ResponseEntity<>(cart, HttpStatus.CREATED);
-    }
+    // =========================
+    // GET CURRENT USER CART
+    // =========================
 
     @GetMapping
     public ResponseEntity<CartResponse> getCart(
             Authentication authentication) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
 
         return ResponseEntity.ok(
                 cartService.getCart(email));
     }
 
-    @PutMapping("/update")
+    // =========================
+    // ADD PRODUCT TO CART
+    // =========================
+
+    @PostMapping("/items")
+    public ResponseEntity<CartResponse> addToCart(
+            Authentication authentication,
+            @RequestBody CartAddRequest request) {
+
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
+
+        CartResponse cart = cartService.addToCart(
+                email,
+                request.getProductId(),
+                request.getQuantity());
+
+        return new ResponseEntity<>(
+                cart,
+                HttpStatus.CREATED);
+    }
+
+    // =========================
+    // UPDATE CART ITEM
+    // =========================
+
+    @PutMapping("/items/{productId}")
     public ResponseEntity<CartResponse> updateQuantity(
             Authentication authentication,
-            @RequestParam Long productId,
-            @RequestParam Integer quantity) {
+            @PathVariable Long productId,
+            @RequestBody CartQuantityRequest request) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
 
         return ResponseEntity.ok(
                 cartService.updateQuantity(
                         email,
                         productId,
-                        quantity));
+                        request.getQuantity()));
     }
 
-    @DeleteMapping("/remove")
+    // =========================
+    // REMOVE CART ITEM
+    // =========================
+
+    @DeleteMapping("/items/{productId}")
     public ResponseEntity<Void> removeFromCart(
             Authentication authentication,
-            @RequestParam Long productId) {
+            @PathVariable Long productId) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
 
-        cartService.removeFromCart(email, productId);
+        String email = user.getEmail();
+
+        cartService.removeFromCart(
+                email,
+                productId);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/clear")
+    // =========================
+    // CLEAR CART
+    // =========================
+
+    @DeleteMapping
     public ResponseEntity<Void> clearCart(
             Authentication authentication) {
 
-        String email = authentication.getName();
+        User user = (User) authentication.getPrincipal();
+
+        String email = user.getEmail();
 
         cartService.clearCart(email);
 
         return ResponseEntity.noContent().build();
+    }
+
+    // =========================
+    // ADD TO CART REQUEST
+    // =========================
+
+    public static class CartAddRequest {
+
+        private Long productId;
+        private Integer quantity;
+
+        public Long getProductId() {
+            return productId;
+        }
+
+        public void setProductId(Long productId) {
+            this.productId = productId;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+    }
+
+    // =========================
+    // UPDATE QUANTITY REQUEST
+    // =========================
+
+    public static class CartQuantityRequest {
+
+        private Integer quantity;
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
     }
 }

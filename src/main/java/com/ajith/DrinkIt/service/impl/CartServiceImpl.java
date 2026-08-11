@@ -10,6 +10,7 @@ import com.ajith.drinkit.entity.CartItem;
 import com.ajith.drinkit.entity.Product;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.exception.InsufficientStockException;
+import com.ajith.drinkit.exception.InvalidCartOperationException;
 import com.ajith.drinkit.exception.ResourceNotFoundException;
 import com.ajith.drinkit.mapper.CartMapper;
 import com.ajith.drinkit.repository.CartItemRepository;
@@ -38,37 +39,53 @@ public class CartServiceImpl implements CartService {
                 this.userRepository = userRepository;
         }
 
+        // =========================
+        // ADD TO CART
+        // =========================
+
         @Override
         public CartResponse addToCart(
                         String email,
                         Long productId,
                         Integer quantity) {
 
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-                Cart cart = cartRepository.findByUser(user)
-                                .orElseGet(() -> {
-                                        Cart newCart = new Cart();
-                                        newCart.setUser(user);
-                                        return cartRepository.save(newCart);
-                                });
-
-                Product product = productRepository.findById(productId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-
-                // Validate product
-                if (!product.getActive()) {
-                        throw new RuntimeException("Product is inactive");
-                }
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
                 // Validate quantity
                 if (quantity == null || quantity <= 0) {
-                        throw new RuntimeException(
+                        throw new InvalidCartOperationException(
                                         "Quantity must be greater than zero");
                 }
 
-                Optional<CartItem> existingItem = cartItemRepository.findByCartAndProduct(cart, product);
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseGet(() -> {
+
+                                        Cart newCart = new Cart();
+
+                                        newCart.setUser(user);
+
+                                        return cartRepository.save(newCart);
+                                });
+
+                Product product = productRepository
+                                .findById(productId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
+
+                // Validate product status
+                if (!product.getActive()) {
+                        throw new InvalidCartOperationException(
+                                        "Product is inactive");
+                }
+
+                Optional<CartItem> existingItem = cartItemRepository
+                                .findByCartAndProduct(
+                                                cart,
+                                                product);
 
                 if (existingItem.isPresent()) {
 
@@ -76,8 +93,9 @@ public class CartServiceImpl implements CartService {
 
                         int newQuantity = item.getQuantity() + quantity;
 
-                        // Check final cart quantity against stock
+                        // Check final quantity against stock
                         if (newQuantity > product.getStock()) {
+
                                 throw new InsufficientStockException(
                                                 "Insufficient stock");
                         }
@@ -90,6 +108,7 @@ public class CartServiceImpl implements CartService {
 
                         // Check requested quantity against stock
                         if (quantity > product.getStock()) {
+
                                 throw new InsufficientStockException(
                                                 "Insufficient stock");
                         }
@@ -107,20 +126,34 @@ public class CartServiceImpl implements CartService {
 
                 Cart savedCart = cartRepository.save(cart);
 
-                return CartMapper.toResponse(savedCart);
+                return CartMapper.toResponse(
+                                savedCart);
         }
 
+        // =========================
+        // GET CART
+        // =========================
+
         @Override
-        public CartResponse getCart(String email) {
+        public CartResponse getCart(
+                        String email) {
 
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-                Cart cart = cartRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Cart not found"));
 
                 return CartMapper.toResponse(cart);
         }
+
+        // =========================
+        // UPDATE QUANTITY
+        // =========================
 
         @Override
         public CartResponse updateQuantity(
@@ -128,35 +161,47 @@ public class CartServiceImpl implements CartService {
                         Long productId,
                         Integer quantity) {
 
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-                Cart cart = cartRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Cart not found"));
 
-                Product product = productRepository.findById(productId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                Product product = productRepository
+                                .findById(productId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
 
                 CartItem item = cartItemRepository
-                                .findByCartAndProduct(cart, product)
+                                .findByCartAndProduct(
+                                                cart,
+                                                product)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Product not found in cart"));
 
                 // Validate quantity
                 if (quantity == null || quantity <= 0) {
-                        throw new RuntimeException(
-                                        "Quantity must be greater than zero");
-                }
 
-                // Check stock
-                if (quantity > product.getStock()) {
-                        throw new InsufficientStockException(
-                                        "Insufficient stock");
+                        throw new InvalidCartOperationException(
+                                        "Quantity must be greater than zero");
                 }
 
                 // Check product status
                 if (!product.getActive()) {
-                        throw new RuntimeException("Product is inactive");
+
+                        throw new InvalidCartOperationException(
+                                        "Product is inactive");
+                }
+
+                // Check stock
+                if (quantity > product.getStock()) {
+
+                        throw new InsufficientStockException(
+                                        "Insufficient stock");
                 }
 
                 item.setQuantity(quantity);
@@ -166,22 +211,34 @@ public class CartServiceImpl implements CartService {
                 return CartMapper.toResponse(cart);
         }
 
+        // =========================
+        // REMOVE ITEM
+        // =========================
+
         @Override
         public void removeFromCart(
                         String email,
                         Long productId) {
 
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-                Cart cart = cartRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Cart not found"));
 
-                Product product = productRepository.findById(productId)
-                                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+                Product product = productRepository
+                                .findById(productId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
 
                 CartItem item = cartItemRepository
-                                .findByCartAndProduct(cart, product)
+                                .findByCartAndProduct(
+                                                cart,
+                                                product)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Product not found in cart"));
 
@@ -192,14 +249,23 @@ public class CartServiceImpl implements CartService {
                 cartRepository.save(cart);
         }
 
+        // =========================
+        // CLEAR CART
+        // =========================
+
         @Override
-        public void clearCart(String email) {
+        public void clearCart(
+                        String email) {
 
-                User user = userRepository.findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                User user = userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
 
-                Cart cart = cartRepository.findByUser(user)
-                                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+                Cart cart = cartRepository
+                                .findByUser(user)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Cart not found"));
 
                 cart.getItems().clear();
 

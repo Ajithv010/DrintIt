@@ -63,9 +63,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
 
             String email = jwtService.extractEmail(token);
-            System.out.println("========== JWT DEBUG ==========");
-            System.out.println("JWT EMAIL: " + email);
-            System.out.println("================================");
 
             User user = userRepository
                     .findByEmail(email)

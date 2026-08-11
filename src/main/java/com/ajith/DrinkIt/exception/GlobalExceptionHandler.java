@@ -11,63 +11,72 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(
-            ResourceNotFoundException ex) {
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<Map<String, Object>> handleNotFound(
+                        ResourceNotFoundException ex) {
 
-        return buildResponse(
-                HttpStatus.NOT_FOUND,
-                ex.getMessage());
-    }
+                return buildResponse(
+                                HttpStatus.NOT_FOUND,
+                                ex.getMessage());
+        }
 
-    @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<Map<String, Object>> handleInsufficientStock(
-            InsufficientStockException ex) {
+        @ExceptionHandler(InsufficientStockException.class)
+        public ResponseEntity<Map<String, Object>> handleInsufficientStock(
+                        InsufficientStockException ex) {
 
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                ex.getMessage());
-    }
+                return buildResponse(
+                                HttpStatus.CONFLICT,
+                                ex.getMessage());
+        }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDenied(
-            AccessDeniedException ex) {
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<Map<String, Object>> handleAccessDenied(
+                        AccessDeniedException ex) {
 
-        return buildResponse(
-                HttpStatus.FORBIDDEN,
-                ex.getMessage());
-    }
+                return buildResponse(
+                                HttpStatus.FORBIDDEN,
+                                ex.getMessage());
+        }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthenticationException(
-            AuthenticationException ex) {
+        @ExceptionHandler(AuthenticationException.class)
+        public ResponseEntity<Map<String, Object>> handleAuthenticationException(
+                        AuthenticationException ex) {
 
-        return buildResponse(
-                HttpStatus.UNAUTHORIZED,
-                ex.getMessage());
-    }
+                return buildResponse(
+                                HttpStatus.UNAUTHORIZED,
+                                ex.getMessage());
+        }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(
-            RuntimeException ex) {
+        @ExceptionHandler(RuntimeException.class)
+        public ResponseEntity<Map<String, Object>> handleRuntimeException(
+                        RuntimeException ex) {
 
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage());
-    }
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                ex.getMessage());
+        }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(
-            HttpStatus status,
-            String message) {
+        @ExceptionHandler(InvalidCartOperationException.class)
+        public ResponseEntity<Map<String, Object>> handleInvalidCartOperation(
+                        InvalidCartOperationException ex) {
 
-        Map<String, Object> response = Map.of(
-                "timestamp", LocalDateTime.now(),
-                "status", status.value(),
-                "error", status.getReasonPhrase(),
-                "message", message);
+                return buildResponse(
+                                HttpStatus.BAD_REQUEST,
+                                ex.getMessage());
+        }
 
-        return ResponseEntity
-                .status(status)
-                .body(response);
-    }
+        private ResponseEntity<Map<String, Object>> buildResponse(
+                        HttpStatus status,
+                        String message) {
+
+                Map<String, Object> response = Map.of(
+                                "timestamp", LocalDateTime.now(),
+                                "status", status.value(),
+                                "error", status.getReasonPhrase(),
+                                "message", message);
+
+                return ResponseEntity
+                                .status(status)
+                                .body(response);
+        }
 }
