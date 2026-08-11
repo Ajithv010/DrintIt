@@ -57,7 +57,7 @@ public class OrderController {
     }
 
     // =========================
-    // GET ORDER BY ID
+    // GET MY ORDER BY ID
     // =========================
 
     @GetMapping("/{orderId}")

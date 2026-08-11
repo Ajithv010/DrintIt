@@ -18,7 +18,6 @@ import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.exception.AccessDeniedException;
 import com.ajith.drinkit.exception.InsufficientStockException;
 import com.ajith.drinkit.exception.InvalidCartOperationException;
-import com.ajith.drinkit.exception.InvalidOrderStatusException;
 import com.ajith.drinkit.exception.ResourceNotFoundException;
 import com.ajith.drinkit.mapper.OrderMapper;
 import com.ajith.drinkit.repository.AddressRepository;
@@ -66,37 +65,21 @@ public class OrderServiceImpl implements OrderService {
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "User not found"));
 
-                // =========================
-                // FIND USER'S ADDRESS
-                // =========================
-
                 Address address = addressRepository
                                 .findByIdAndUser(addressId, user)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Address not found"));
-
-                // =========================
-                // FIND CART
-                // =========================
 
                 Cart cart = cartRepository
                                 .findByUser(user)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Cart not found"));
 
-                // =========================
-                // CHECK CART
-                // =========================
-
                 if (cart.getItems().isEmpty()) {
 
                         throw new InvalidCartOperationException(
                                         "Cart is empty");
                 }
-
-                // =========================
-                // CREATE ORDER
-                // =========================
 
                 Order order = new Order();
 
@@ -107,17 +90,9 @@ public class OrderServiceImpl implements OrderService {
 
                 double total = 0.0;
 
-                // =========================
-                // PROCESS CART ITEMS
-                // =========================
-
                 for (CartItem cartItem : cart.getItems()) {
 
                         Product product = cartItem.getProduct();
-
-                        // =========================
-                        // PRODUCT STATUS
-                        // =========================
 
                         if (!product.getActive()) {
 
@@ -126,10 +101,6 @@ public class OrderServiceImpl implements OrderService {
                                                                 + product.getName());
                         }
 
-                        // =========================
-                        // STOCK VALIDATION
-                        // =========================
-
                         if (cartItem.getQuantity() > product.getStock()) {
 
                                 throw new InsufficientStockException(
@@ -137,23 +108,15 @@ public class OrderServiceImpl implements OrderService {
                                                                 + product.getName());
                         }
 
-                        // =========================
-                        // CREATE ORDER ITEM
-                        // =========================
-
                         OrderItem orderItem = new OrderItem();
 
                         orderItem.setOrder(order);
                         orderItem.setProduct(product);
-
-                        orderItem.setQuantity(
-                                        cartItem.getQuantity());
+                        orderItem.setQuantity(cartItem.getQuantity());
 
                         // Save price at purchase time
-                        orderItem.setPrice(
-                                        product.getPrice());
+                        orderItem.setPrice(product.getPrice());
 
-                        // Calculate subtotal
                         double subtotal = product.getPrice()
                                         * cartItem.getQuantity();
 
@@ -161,15 +124,7 @@ public class OrderServiceImpl implements OrderService {
 
                         order.getItems().add(orderItem);
 
-                        // =========================
-                        // CALCULATE TOTAL
-                        // =========================
-
                         total += subtotal;
-
-                        // =========================
-                        // REDUCE STOCK
-                        // =========================
 
                         product.setStock(
                                         product.getStock()
@@ -178,28 +133,15 @@ public class OrderServiceImpl implements OrderService {
                         productRepository.save(product);
                 }
 
-                // =========================
-                // SET ORDER TOTAL
-                // =========================
-
                 order.setTotalAmount(total);
 
-                // =========================
-                // SAVE ORDER
-                // =========================
-
                 Order savedOrder = orderRepository.save(order);
-
-                // =========================
-                // CLEAR CART
-                // =========================
 
                 cart.getItems().clear();
 
                 cartRepository.save(cart);
 
-                return OrderMapper.toResponse(
-                                savedOrder);
+                return OrderMapper.toResponse(savedOrder);
         }
 
         // =========================
@@ -216,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
                                                 "User not found"));
 
                 return orderRepository
-                                .findByUser(user)
+                                .findByUserOrderByCreatedAtDesc(user)
                                 .stream()
                                 .map(OrderMapper::toResponse)
                                 .toList();
@@ -281,17 +223,6 @@ public class OrderServiceImpl implements OrderService {
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Order not found"));
 
-                // =========================
-                // VALIDATE STATUS INPUT
-                // =========================
-
-                if (status == null ||
-                                status.isBlank()) {
-
-                        throw new InvalidOrderStatusException(
-                                        "Order status is required");
-                }
-
                 OrderStatus newStatus;
 
                 try {
@@ -299,65 +230,41 @@ public class OrderServiceImpl implements OrderService {
                         newStatus = OrderStatus.valueOf(
                                         status.trim().toUpperCase());
 
-                } catch (IllegalArgumentException ex) {
+                } catch (IllegalArgumentException e) {
 
-                        throw new InvalidOrderStatusException(
-                                        "Invalid order status: " + status);
+                        throw new IllegalArgumentException(
+                                        "Invalid order status");
                 }
 
                 OrderStatus currentStatus = order.getStatus();
 
-                // =========================
-                // VALID STATUS TRANSITIONS
-                // =========================
+                if (currentStatus == OrderStatus.DELIVERED ||
+                                currentStatus == OrderStatus.CANCELLED) {
 
-                if (currentStatus == OrderStatus.PENDING) {
-
-                        if (newStatus != OrderStatus.CONFIRMED &&
-                                        newStatus != OrderStatus.CANCELLED) {
-
-                                throw new InvalidOrderStatusException(
-                                                "Cannot change order status from "
-                                                                + currentStatus
-                                                                + " to "
-                                                                + newStatus);
-                        }
+                        throw new IllegalStateException(
+                                        "Order status cannot be changed after completion");
                 }
 
-                else if (currentStatus == OrderStatus.CONFIRMED) {
+                if (currentStatus == OrderStatus.PENDING &&
+                                newStatus != OrderStatus.CONFIRMED &&
+                                newStatus != OrderStatus.CANCELLED) {
 
-                        if (newStatus != OrderStatus.DELIVERED &&
-                                        newStatus != OrderStatus.CANCELLED) {
-
-                                throw new InvalidOrderStatusException(
-                                                "Cannot change order status from "
-                                                                + currentStatus
-                                                                + " to "
-                                                                + newStatus);
-                        }
+                        throw new IllegalStateException(
+                                        "PENDING order can only be CONFIRMED or CANCELLED");
                 }
 
-                else if (currentStatus == OrderStatus.DELIVERED) {
+                if (currentStatus == OrderStatus.CONFIRMED &&
+                                newStatus != OrderStatus.DELIVERED &&
+                                newStatus != OrderStatus.CANCELLED) {
 
-                        throw new InvalidOrderStatusException(
-                                        "Delivered orders cannot be modified");
+                        throw new IllegalStateException(
+                                        "CONFIRMED order can only be DELIVERED or CANCELLED");
                 }
-
-                else if (currentStatus == OrderStatus.CANCELLED) {
-
-                        throw new InvalidOrderStatusException(
-                                        "Cancelled orders cannot be modified");
-                }
-
-                // =========================
-                // UPDATE STATUS
-                // =========================
 
                 order.setStatus(newStatus);
 
-                Order updatedOrder = orderRepository.save(order);
+                Order savedOrder = orderRepository.save(order);
 
-                return OrderMapper.toResponse(
-                                updatedOrder);
+                return OrderMapper.toResponse(savedOrder);
         }
 }
