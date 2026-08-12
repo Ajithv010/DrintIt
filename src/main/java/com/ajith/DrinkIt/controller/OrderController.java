@@ -15,61 +15,92 @@ import com.ajith.drinkit.service.OrderService;
 @RequestMapping("/api/orders")
 public class OrderController {
 
-    private final OrderService orderService;
+        private final OrderService orderService;
 
-    public OrderController(OrderService orderService) {
-        this.orderService = orderService;
-    }
+        public OrderController(OrderService orderService) {
+                this.orderService = orderService;
+        }
 
-    // =========================
-    // PLACE ORDER
-    // =========================
+        // =========================
+        // PLACE ORDER
+        // =========================
 
-    @PostMapping
-    public ResponseEntity<OrderResponse> placeOrder(
-            Authentication authentication,
-            @RequestParam Long addressId) {
+        @PostMapping
+        public ResponseEntity<OrderResponse> placeOrder(
+                        Authentication authentication,
+                        @RequestParam Long addressId) {
 
-        User user = (User) authentication.getPrincipal();
+                User user = (User) authentication.getPrincipal();
 
-        OrderResponse response = orderService.placeOrder(
-                user.getEmail(),
-                addressId);
+                OrderResponse response = orderService.placeOrder(
+                                user.getEmail(),
+                                addressId);
 
-        return new ResponseEntity<>(
-                response,
-                HttpStatus.CREATED);
-    }
+                return new ResponseEntity<>(
+                                response,
+                                HttpStatus.CREATED);
+        }
 
-    // =========================
-    // GET MY ORDERS
-    // =========================
+        // =========================
+        // GET MY ORDERS
+        // =========================
 
-    @GetMapping
-    public ResponseEntity<List<OrderResponse>> getMyOrders(
-            Authentication authentication) {
+        @GetMapping
+        public ResponseEntity<List<OrderResponse>> getMyOrders(
+                        Authentication authentication) {
 
-        User user = (User) authentication.getPrincipal();
+                User user = (User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(
-                orderService.getMyOrders(
-                        user.getEmail()));
-    }
+                return ResponseEntity.ok(
+                                orderService.getMyOrders(
+                                                user.getEmail()));
+        }
 
-    // =========================
-    // GET MY ORDER BY ID
-    // =========================
+        // =========================
+        // GET MY ORDER BY ID
+        // =========================
 
-    @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrderById(
-            Authentication authentication,
-            @PathVariable Long orderId) {
+        @GetMapping("/{orderId}")
+        public ResponseEntity<OrderResponse> getOrderById(
+                        Authentication authentication,
+                        @PathVariable Long orderId) {
 
-        User user = (User) authentication.getPrincipal();
+                User user = (User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(
-                orderService.getOrderById(
-                        user.getEmail(),
-                        orderId));
-    }
+                return ResponseEntity.ok(
+                                orderService.getOrderById(
+                                                user.getEmail(),
+                                                orderId));
+        }
+
+        // =========================
+        // CANCEL MY ORDER
+        // =========================
+
+        @DeleteMapping("/{orderId}")
+        public ResponseEntity<OrderResponse> cancelOrder(
+                        Authentication authentication,
+                        @PathVariable Long orderId) {
+
+                User user = (User) authentication.getPrincipal();
+
+                return ResponseEntity.ok(
+                                orderService.cancelOrder(
+                                                user.getEmail(),
+                                                orderId));
+        }
+        // =========================
+        // ADMIN - UPDATE ORDER STATUS
+        // =========================
+
+        @PutMapping("/{orderId}/status")
+        public ResponseEntity<OrderResponse> updateOrderStatus(
+                        @PathVariable Long orderId,
+                        @RequestParam String status) {
+
+                return ResponseEntity.ok(
+                                orderService.updateOrderStatus(
+                                                orderId,
+                                                status));
+        }
 }

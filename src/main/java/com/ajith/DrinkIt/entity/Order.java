@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,14 +39,17 @@ public class Order {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "address_id")
+    @JoinColumn(name = "address_id", nullable = false)
     private Address deliveryAddress;
 
+    @Column(nullable = false)
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus status;
 
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)

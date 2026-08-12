@@ -22,340 +22,435 @@ import com.ajith.drinkit.service.ProductService;
 @Service
 public class ProductServiceImpl implements ProductService {
 
-    private final ProductRepository productRepository;
-    private final CategoryRepository categoryRepository;
+        private final ProductRepository productRepository;
+        private final CategoryRepository categoryRepository;
 
-    public ProductServiceImpl(
-            ProductRepository productRepository,
-            CategoryRepository categoryRepository) {
+        public ProductServiceImpl(
+                        ProductRepository productRepository,
+                        CategoryRepository categoryRepository) {
 
-        this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-    }
-
-    // =========================
-    // CREATE PRODUCT
-    // =========================
-
-    @Override
-    public ProductResponse createProduct(ProductRequest request) {
-
-        if (productRepository.existsByName(request.getName())) {
-
-            throw new RuntimeException(
-                    "Product with this name already exists");
-        }
-
-        Category category = categoryRepository
-                .findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category not found"));
-
-        Product product = new Product();
-
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
-        product.setBrand(request.getBrand());
-        product.setImageUrl(request.getImageUrl());
-        product.setActive(request.getActive());
-        product.setCategory(category);
-
-        Product saved = productRepository.save(product);
-
-        return ProductMapper.toResponse(saved);
-    }
-
-    // =========================
-    // GET ALL PRODUCTS
-    // =========================
-
-    @Override
-    public List<ProductResponse> getAllProducts() {
-
-        return productRepository.findAll()
-                .stream()
-                .map(ProductMapper::toResponse)
-                .toList();
-    }
-
-    // =========================
-    // SEARCH / FILTER / SORT
-    // =========================
-
-    @Override
-    public Page<ProductResponse> searchProducts(
-            String keyword,
-            Long categoryId,
-            Double minPrice,
-            Double maxPrice,
-            Boolean inStock,
-            Boolean active,
-            String sortBy,
-            String direction,
-            int page,
-            int size) {
-
-        // =========================
-        // VALIDATE PAGINATION
-        // =========================
-
-        if (page < 0) {
-
-            throw new IllegalArgumentException(
-                    "Page must be greater than or equal to 0");
-        }
-
-        if (size <= 0 || size > 100) {
-
-            throw new IllegalArgumentException(
-                    "Size must be between 1 and 100");
+                this.productRepository = productRepository;
+                this.categoryRepository = categoryRepository;
         }
 
         // =========================
-        // VALIDATE PRICE
+        // CREATE PRODUCT
         // =========================
 
-        if (minPrice != null &&
-                maxPrice != null &&
-                minPrice > maxPrice) {
+        @Override
+        public ProductResponse createProduct(
+                        ProductRequest request) {
 
-            throw new IllegalArgumentException(
-                    "Minimum price cannot be greater than maximum price");
+                validateProductRequest(request);
+
+                if (productRepository.existsByName(
+                                request.getName().trim())) {
+
+                        throw new IllegalArgumentException(
+                                        "Product with this name already exists");
+                }
+
+                Category category = categoryRepository
+                                .findById(request.getCategoryId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Category not found"));
+
+                Product product = new Product();
+
+                product.setName(
+                                request.getName().trim());
+
+                product.setDescription(
+                                request.getDescription());
+
+                product.setPrice(
+                                request.getPrice());
+
+                product.setStock(
+                                request.getStock());
+
+                product.setBrand(
+                                request.getBrand());
+
+                product.setImageUrl(
+                                request.getImageUrl());
+
+                product.setActive(
+                                request.getActive());
+
+                product.setCategory(category);
+
+                Product saved = productRepository.save(product);
+
+                return ProductMapper.toResponse(saved);
         }
 
         // =========================
-        // SORT
+        // GET ALL PRODUCTS
         // =========================
 
-        String validSortField;
+        @Override
+        public List<ProductResponse> getAllProducts() {
 
-        switch (sortBy == null ? "name" : sortBy.toLowerCase()) {
-
-            case "price":
-                validSortField = "price";
-                break;
-
-            case "name":
-                validSortField = "name";
-                break;
-
-            case "stock":
-                validSortField = "stock";
-                break;
-
-            case "brand":
-                validSortField = "brand";
-                break;
-
-            default:
-                throw new IllegalArgumentException(
-                        "Invalid sort field. Use name, price, stock or brand");
-        }
-
-        Sort.Direction sortDirection;
-
-        if ("desc".equalsIgnoreCase(direction)) {
-
-            sortDirection = Sort.Direction.DESC;
-
-        } else if ("asc".equalsIgnoreCase(direction)) {
-
-            sortDirection = Sort.Direction.ASC;
-
-        } else {
-
-            throw new IllegalArgumentException(
-                    "Invalid sort direction. Use asc or desc");
-        }
-
-        Pageable pageable = PageRequest.of(
-                page,
-                size,
-                Sort.by(sortDirection, validSortField));
-
-        // =========================
-        // BUILD FILTER
-        // =========================
-
-        Specification<Product> specification = (root, query, criteriaBuilder) -> null;
-
-        // =========================
-        // KEYWORD SEARCH
-        // =========================
-
-        if (keyword != null &&
-                !keyword.trim().isEmpty()) {
-
-            String searchKeyword = "%" + keyword.trim().toLowerCase() + "%";
-
-            specification = specification.and(
-                    (root, query, criteriaBuilder) -> criteriaBuilder.or(
-
-                            criteriaBuilder.like(
-                                    criteriaBuilder.lower(
-                                            root.get("name")),
-                                    searchKeyword),
-
-                            criteriaBuilder.like(
-                                    criteriaBuilder.lower(
-                                            root.get("description")),
-                                    searchKeyword),
-
-                            criteriaBuilder.like(
-                                    criteriaBuilder.lower(
-                                            root.get("brand")),
-                                    searchKeyword)));
+                return productRepository.findAll()
+                                .stream()
+                                .map(ProductMapper::toResponse)
+                                .toList();
         }
 
         // =========================
-        // CATEGORY FILTER
+        // SEARCH / FILTER
         // =========================
 
-        if (categoryId != null) {
+        @Override
+        public Page<ProductResponse> searchProducts(
+                        String keyword,
+                        Long categoryId,
+                        Double minPrice,
+                        Double maxPrice,
+                        Boolean inStock,
+                        Boolean active,
+                        String sortBy,
+                        String direction,
+                        int page,
+                        int size) {
 
-            specification = specification.and(
-                    (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                            root.get("category").get("id"),
-                            categoryId));
+                if (page < 0) {
+
+                        throw new IllegalArgumentException(
+                                        "Page must be greater than or equal to 0");
+                }
+
+                if (size <= 0 || size > 100) {
+
+                        throw new IllegalArgumentException(
+                                        "Size must be between 1 and 100");
+                }
+
+                if (minPrice != null && minPrice < 0) {
+
+                        throw new IllegalArgumentException(
+                                        "Minimum price cannot be negative");
+                }
+
+                if (maxPrice != null && maxPrice < 0) {
+
+                        throw new IllegalArgumentException(
+                                        "Maximum price cannot be negative");
+                }
+
+                if (minPrice != null &&
+                                maxPrice != null &&
+                                minPrice > maxPrice) {
+
+                        throw new IllegalArgumentException(
+                                        "Minimum price cannot be greater than maximum price");
+                }
+
+                String validSortField;
+
+                switch (sortBy == null
+                                ? "name"
+                                : sortBy.toLowerCase()) {
+
+                        case "price":
+                                validSortField = "price";
+                                break;
+
+                        case "name":
+                                validSortField = "name";
+                                break;
+
+                        case "stock":
+                                validSortField = "stock";
+                                break;
+
+                        case "brand":
+                                validSortField = "brand";
+                                break;
+
+                        default:
+                                throw new IllegalArgumentException(
+                                                "Invalid sort field. Use name, price, stock or brand");
+                }
+
+                Sort.Direction sortDirection;
+
+                if ("desc".equalsIgnoreCase(direction)) {
+
+                        sortDirection = Sort.Direction.DESC;
+
+                } else if ("asc".equalsIgnoreCase(direction)) {
+
+                        sortDirection = Sort.Direction.ASC;
+
+                } else {
+
+                        throw new IllegalArgumentException(
+                                        "Invalid sort direction. Use asc or desc");
+                }
+
+                Pageable pageable = PageRequest.of(
+                                page,
+                                size,
+                                Sort.by(
+                                                sortDirection,
+                                                validSortField));
+
+                Specification<Product> specification = (root, query, criteriaBuilder) -> null;
+
+                // =========================
+                // KEYWORD
+                // =========================
+
+                if (keyword != null &&
+                                !keyword.trim().isEmpty()) {
+
+                        String searchKeyword = "%" +
+                                        keyword.trim().toLowerCase() +
+                                        "%";
+
+                        specification = specification.and(
+                                        (root, query, criteriaBuilder) -> criteriaBuilder.or(
+
+                                                        criteriaBuilder.like(
+                                                                        criteriaBuilder.lower(
+                                                                                        root.get("name")),
+                                                                        searchKeyword),
+
+                                                        criteriaBuilder.like(
+                                                                        criteriaBuilder.lower(
+                                                                                        root.get("description")),
+                                                                        searchKeyword),
+
+                                                        criteriaBuilder.like(
+                                                                        criteriaBuilder.lower(
+                                                                                        root.get("brand")),
+                                                                        searchKeyword)));
+                }
+
+                // =========================
+                // CATEGORY
+                // =========================
+
+                if (categoryId != null) {
+
+                        specification = specification.and(
+                                        (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                                                        root.get("category")
+                                                                        .get("id"),
+                                                        categoryId));
+                }
+
+                // =========================
+                // MIN PRICE
+                // =========================
+
+                if (minPrice != null) {
+
+                        specification = specification.and(
+                                        (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
+                                                        root.get("price"),
+                                                        minPrice));
+                }
+
+                // =========================
+                // MAX PRICE
+                // =========================
+
+                if (maxPrice != null) {
+
+                        specification = specification.and(
+                                        (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
+                                                        root.get("price"),
+                                                        maxPrice));
+                }
+
+                // =========================
+                // STOCK
+                // =========================
+
+                if (inStock != null) {
+
+                        if (inStock) {
+
+                                specification = specification.and(
+                                                (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(
+                                                                root.get("stock"),
+                                                                0));
+
+                        } else {
+
+                                specification = specification.and(
+                                                (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                                                                root.get("stock"),
+                                                                0));
+                        }
+                }
+
+                // =========================
+                // ACTIVE
+                // =========================
+
+                if (active != null) {
+
+                        specification = specification.and(
+                                        (root, query, criteriaBuilder) -> criteriaBuilder.equal(
+                                                        root.get("active"),
+                                                        active));
+                }
+
+                return productRepository
+                                .findAll(
+                                                specification,
+                                                pageable)
+                                .map(ProductMapper::toResponse);
         }
 
         // =========================
-        // MINIMUM PRICE
+        // GET PRODUCT BY ID
         // =========================
 
-        if (minPrice != null) {
+        @Override
+        public ProductResponse getProductById(
+                        Long id) {
 
-            specification = specification.and(
-                    (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
-                            root.get("price"),
-                            minPrice));
+                Product product = productRepository
+                                .findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
+
+                return ProductMapper.toResponse(product);
         }
 
         // =========================
-        // MAXIMUM PRICE
+        // UPDATE PRODUCT
         // =========================
 
-        if (maxPrice != null) {
+        @Override
+        public ProductResponse updateProduct(
+                        Long id,
+                        ProductRequest request) {
 
-            specification = specification.and(
-                    (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
-                            root.get("price"),
-                            maxPrice));
+                validateProductRequest(request);
+
+                Product product = productRepository
+                                .findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
+
+                Category category = categoryRepository
+                                .findById(request.getCategoryId())
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Category not found"));
+
+                if (!product.getName()
+                                .equalsIgnoreCase(request.getName().trim())
+                                &&
+                                productRepository.existsByName(
+                                                request.getName().trim())) {
+
+                        throw new IllegalArgumentException(
+                                        "Product with this name already exists");
+                }
+
+                product.setName(
+                                request.getName().trim());
+
+                product.setDescription(
+                                request.getDescription());
+
+                product.setPrice(
+                                request.getPrice());
+
+                product.setStock(
+                                request.getStock());
+
+                product.setBrand(
+                                request.getBrand());
+
+                product.setImageUrl(
+                                request.getImageUrl());
+
+                product.setActive(
+                                request.getActive());
+
+                product.setCategory(category);
+
+                Product updatedProduct = productRepository.save(product);
+
+                return ProductMapper.toResponse(
+                                updatedProduct);
         }
 
         // =========================
-        // STOCK FILTER
+        // DELETE PRODUCT
         // =========================
 
-        if (inStock != null) {
+        @Override
+        public void deleteProduct(
+                        Long id) {
 
-            if (inStock) {
+                Product product = productRepository
+                                .findById(id)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Product not found"));
 
-                specification = specification.and(
-                        (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(
-                                root.get("stock"),
-                                0));
+                /*
+                 * Soft delete.
+                 *
+                 * We don't physically delete the product because
+                 * existing orders may still reference it.
+                 */
+                product.setActive(false);
 
-            } else {
-
-                specification = specification.and(
-                        (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                                root.get("stock"),
-                                0));
-            }
+                productRepository.save(product);
         }
 
         // =========================
-        // ACTIVE FILTER
+        // VALIDATE PRODUCT REQUEST
         // =========================
 
-        if (active != null) {
+        private void validateProductRequest(
+                        ProductRequest request) {
 
-            specification = specification.and(
-                    (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                            root.get("active"),
-                            active));
+                if (request == null) {
+
+                        throw new IllegalArgumentException(
+                                        "Product details are required");
+                }
+
+                if (request.getName() == null ||
+                                request.getName().trim().isEmpty()) {
+
+                        throw new IllegalArgumentException(
+                                        "Product name is required");
+                }
+
+                if (request.getPrice() == null ||
+                                request.getPrice() <= 0) {
+
+                        throw new IllegalArgumentException(
+                                        "Product price must be greater than zero");
+                }
+
+                if (request.getStock() == null ||
+                                request.getStock() < 0) {
+
+                        throw new IllegalArgumentException(
+                                        "Product stock cannot be negative");
+                }
+
+                if (request.getCategoryId() == null) {
+
+                        throw new IllegalArgumentException(
+                                        "Category ID is required");
+                }
+
+                if (request.getActive() == null) {
+
+                        throw new IllegalArgumentException(
+                                        "Active status is required");
+                }
         }
-
-        // =========================
-        // EXECUTE QUERY
-        // =========================
-
-        return productRepository
-                .findAll(specification, pageable)
-                .map(ProductMapper::toResponse);
-    }
-
-    // =========================
-    // GET PRODUCT BY ID
-    // =========================
-
-    @Override
-    public ProductResponse getProductById(Long id) {
-
-        Product product = productRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Product not found"));
-
-        return ProductMapper.toResponse(product);
-    }
-
-    // =========================
-    // UPDATE PRODUCT
-    // =========================
-
-    @Override
-    public ProductResponse updateProduct(
-            Long id,
-            ProductRequest request) {
-
-        Product product = productRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Product not found"));
-
-        Category category = categoryRepository
-                .findById(request.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Category not found"));
-
-        product.setName(request.getName());
-        product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice());
-        product.setStock(request.getStock());
-        product.setBrand(request.getBrand());
-        product.setImageUrl(request.getImageUrl());
-        product.setActive(request.getActive());
-        product.setCategory(category);
-
-        Product updatedProduct = productRepository.save(product);
-
-        return ProductMapper.toResponse(updatedProduct);
-    }
-
-    // =========================
-    // DELETE PRODUCT
-    // =========================
-
-    @Override
-    public void deleteProduct(Long id) {
-
-        Product product = productRepository
-                .findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Product not found"));
-
-        try {
-
-            productRepository.delete(product);
-
-        } catch (Exception e) {
-
-            throw new RuntimeException(
-                    "Cannot delete product because it is associated with existing orders.");
-        }
-    }
 }

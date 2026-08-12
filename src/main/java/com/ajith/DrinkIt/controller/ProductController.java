@@ -11,198 +11,199 @@ import com.ajith.drinkit.dto.ProductResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.ProductService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
-    private final ProductService productService;
+        private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-
-        this.productService = productService;
-    }
-
-    // =========================
-    // CREATE PRODUCT
-    // ADMIN ONLY
-    // =========================
-
-    @PostMapping
-    public ResponseEntity<ProductResponse> createProduct(
-            @RequestBody ProductRequest request) {
-
-        return new ResponseEntity<>(
-                productService.createProduct(request),
-                HttpStatus.CREATED);
-    }
-
-    // =========================
-    // GET PRODUCTS
-    // SEARCH / FILTER / SORT / PAGINATION
-    // =========================
-
-    @GetMapping
-    public ResponseEntity<?> getProducts(
-
-            Authentication authentication,
-
-            @RequestParam(required = false) String keyword,
-
-            @RequestParam(required = false) Long categoryId,
-
-            @RequestParam(required = false) Double minPrice,
-
-            @RequestParam(required = false) Double maxPrice,
-
-            @RequestParam(required = false) Boolean inStock,
-
-            @RequestParam(required = false) Boolean active,
-
-            @RequestParam(defaultValue = "name") String sortBy,
-
-            @RequestParam(defaultValue = "asc") String direction,
-
-            @RequestParam(defaultValue = "0") int page,
-
-            @RequestParam(defaultValue = "10") int size) {
-
-        User user = (User) authentication.getPrincipal();
-
-        String role = user.getRole().getRoleName();
-
-        // =========================
-        // CUSTOMER
-        // =========================
-
-        if ("CUSTOMER".equalsIgnoreCase(role)) {
-
-            // Customer MUST only see active products.
-            // Ignore any active=false sent by the client.
-
-            active = true;
-
-            var result = productService.searchProducts(
-                    keyword,
-                    categoryId,
-                    minPrice,
-                    maxPrice,
-                    inStock,
-                    active,
-                    sortBy,
-                    direction,
-                    page,
-                    size);
-
-            ProductPageResponse response = new ProductPageResponse(
-                    result.getContent(),
-                    result.getNumber(),
-                    result.getSize(),
-                    result.getTotalElements(),
-                    result.getTotalPages());
-
-            return ResponseEntity.ok(response);
+        public ProductController(ProductService productService) {
+                this.productService = productService;
         }
 
         // =========================
-        // ADMIN
+        // CREATE PRODUCT
+        // ADMIN ONLY
         // =========================
 
-        // Admin can see active + inactive products.
-        // If admin doesn't provide filters, preserve old response.
+        @PostMapping
+        public ResponseEntity<ProductResponse> createProduct(
+                        @Valid @RequestBody ProductRequest request) {
 
-        if (keyword == null &&
-                categoryId == null &&
-                minPrice == null &&
-                maxPrice == null &&
-                inStock == null &&
-                active == null &&
-                page == 0 &&
-                size == 10 &&
-                "name".equalsIgnoreCase(sortBy) &&
-                "asc".equalsIgnoreCase(direction)) {
-
-            return ResponseEntity.ok(
-                    productService.getAllProducts());
+                return new ResponseEntity<>(
+                                productService.createProduct(request),
+                                HttpStatus.CREATED);
         }
 
         // =========================
-        // ADMIN SEARCH / FILTER
+        // GET PRODUCTS
+        // SEARCH / FILTER / SORT / PAGINATION
         // =========================
 
-        var result = productService.searchProducts(
-                keyword,
-                categoryId,
-                minPrice,
-                maxPrice,
-                inStock,
-                active,
-                sortBy,
-                direction,
-                page,
-                size);
+        @GetMapping
+        public ResponseEntity<?> getProducts(
 
-        ProductPageResponse response = new ProductPageResponse(
-                result.getContent(),
-                result.getNumber(),
-                result.getSize(),
-                result.getTotalElements(),
-                result.getTotalPages());
+                        Authentication authentication,
 
-        return ResponseEntity.ok(response);
-    }
+                        @RequestParam(required = false) String keyword,
 
-    // =========================
-    // GET PRODUCT BY ID
-    // =========================
+                        @RequestParam(required = false) Long categoryId,
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(
-            @PathVariable Long id,
-            Authentication authentication) {
+                        @RequestParam(required = false) Double minPrice,
 
-        ProductResponse product = productService.getProductById(id);
+                        @RequestParam(required = false) Double maxPrice,
 
-        User user = (User) authentication.getPrincipal();
+                        @RequestParam(required = false) Boolean inStock,
 
-        String role = user.getRole().getRoleName();
+                        @RequestParam(required = false) Boolean active,
 
-        // Customer cannot access inactive product
-        if ("CUSTOMER".equalsIgnoreCase(role)
-                && !Boolean.TRUE.equals(product.getActive())) {
+                        @RequestParam(defaultValue = "name") String sortBy,
 
-            return ResponseEntity.notFound().build();
+                        @RequestParam(defaultValue = "asc") String direction,
+
+                        @RequestParam(defaultValue = "0") int page,
+
+                        @RequestParam(defaultValue = "10") int size) {
+
+                User user = (User) authentication.getPrincipal();
+
+                String role = user.getRole().getRoleName();
+
+                // =========================
+                // CUSTOMER
+                // =========================
+
+                if ("CUSTOMER".equalsIgnoreCase(role)) {
+
+                        // Customers can only see active products.
+                        // Ignore active=false sent by customer.
+
+                        active = true;
+
+                        var result = productService.searchProducts(
+                                        keyword,
+                                        categoryId,
+                                        minPrice,
+                                        maxPrice,
+                                        inStock,
+                                        active,
+                                        sortBy,
+                                        direction,
+                                        page,
+                                        size);
+
+                        ProductPageResponse response = new ProductPageResponse(
+                                        result.getContent(),
+                                        result.getNumber(),
+                                        result.getSize(),
+                                        result.getTotalElements(),
+                                        result.getTotalPages());
+
+                        return ResponseEntity.ok(response);
+                }
+
+                // =========================
+                // ADMIN
+                // =========================
+
+                // Admin can see active and inactive products.
+
+                if (keyword == null &&
+                                categoryId == null &&
+                                minPrice == null &&
+                                maxPrice == null &&
+                                inStock == null &&
+                                active == null &&
+                                page == 0 &&
+                                size == 10 &&
+                                "name".equalsIgnoreCase(sortBy) &&
+                                "asc".equalsIgnoreCase(direction)) {
+
+                        return ResponseEntity.ok(
+                                        productService.getAllProducts());
+                }
+
+                // =========================
+                // ADMIN SEARCH / FILTER
+                // =========================
+
+                var result = productService.searchProducts(
+                                keyword,
+                                categoryId,
+                                minPrice,
+                                maxPrice,
+                                inStock,
+                                active,
+                                sortBy,
+                                direction,
+                                page,
+                                size);
+
+                ProductPageResponse response = new ProductPageResponse(
+                                result.getContent(),
+                                result.getNumber(),
+                                result.getSize(),
+                                result.getTotalElements(),
+                                result.getTotalPages());
+
+                return ResponseEntity.ok(response);
         }
 
-        return ResponseEntity.ok(product);
-    }
+        // =========================
+        // GET PRODUCT BY ID
+        // =========================
 
-    // =========================
-    // UPDATE PRODUCT
-    // ADMIN ONLY
-    // =========================
+        @GetMapping("/{id}")
+        public ResponseEntity<ProductResponse> getProductById(
+                        @PathVariable Long id,
+                        Authentication authentication) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(
-            @PathVariable Long id,
-            @RequestBody ProductRequest request) {
+                ProductResponse product = productService.getProductById(id);
 
-        return ResponseEntity.ok(
-                productService.updateProduct(
-                        id,
-                        request));
-    }
+                User user = (User) authentication.getPrincipal();
 
-    // =========================
-    // DELETE PRODUCT
-    // ADMIN ONLY
-    // =========================
+                String role = user.getRole().getRoleName();
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(
-            @PathVariable Long id) {
+                // Customer cannot access inactive product
 
-        productService.deleteProduct(id);
+                if ("CUSTOMER".equalsIgnoreCase(role)
+                                && !Boolean.TRUE.equals(product.getActive())) {
 
-        return ResponseEntity.noContent().build();
-    }
+                        return ResponseEntity.notFound().build();
+                }
+
+                return ResponseEntity.ok(product);
+        }
+
+        // =========================
+        // UPDATE PRODUCT
+        // ADMIN ONLY
+        // =========================
+
+        @PutMapping("/{id}")
+        public ResponseEntity<ProductResponse> updateProduct(
+                        @PathVariable Long id,
+                        @Valid @RequestBody ProductRequest request) {
+
+                return ResponseEntity.ok(
+                                productService.updateProduct(
+                                                id,
+                                                request));
+        }
+
+        // =========================
+        // DELETE PRODUCT
+        // ADMIN ONLY
+        // =========================
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<Void> deleteProduct(
+                        @PathVariable Long id) {
+
+                productService.deleteProduct(id);
+
+                return ResponseEntity.noContent().build();
+        }
 }

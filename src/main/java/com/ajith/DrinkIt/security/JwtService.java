@@ -6,6 +6,7 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -15,32 +16,36 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final String SECRET = "mysecretkeymysecretkeymysecretkey12";
+        private final Key key;
 
-    private final Key key = Keys.hmacShaKeyFor(
-            SECRET.getBytes(StandardCharsets.UTF_8));
+        public JwtService(
+                        @Value("${jwt.secret}") String secret) {
 
-    public String generateToken(String email) {
+                this.key = Keys.hmacShaKeyFor(
+                                secret.getBytes(StandardCharsets.UTF_8));
+        }
 
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date())
-                .expiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + 1000 * 60 * 60))
-                .signWith((SecretKey) key)
-                .compact();
-    }
+        public String generateToken(String email) {
 
-    public String extractEmail(String token) {
+                return Jwts.builder()
+                                .subject(email)
+                                .issuedAt(new Date())
+                                .expiration(
+                                                new Date(
+                                                                System.currentTimeMillis()
+                                                                                + 1000 * 60 * 60))
+                                .signWith((SecretKey) key)
+                                .compact();
+        }
 
-        Claims claims = Jwts.parser()
-                .verifyWith((SecretKey) key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        public String extractEmail(String token) {
 
-        return claims.getSubject();
-    }
+                Claims claims = Jwts.parser()
+                                .verifyWith((SecretKey) key)
+                                .build()
+                                .parseSignedClaims(token)
+                                .getPayload();
+
+                return claims.getSubject();
+        }
 }

@@ -16,6 +16,10 @@ import com.ajith.drinkit.dto.CartResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.CartService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
@@ -49,7 +53,7 @@ public class CartController {
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addToCart(
             Authentication authentication,
-            @RequestBody CartAddRequest request) {
+            @Valid @RequestBody CartAddRequest request) {
 
         User user = (User) authentication.getPrincipal();
 
@@ -73,7 +77,7 @@ public class CartController {
     public ResponseEntity<CartResponse> updateQuantity(
             Authentication authentication,
             @PathVariable Long productId,
-            @RequestBody CartQuantityRequest request) {
+            @Valid @RequestBody CartQuantityRequest request) {
 
         User user = (User) authentication.getPrincipal();
 
@@ -129,7 +133,12 @@ public class CartController {
 
     public static class CartAddRequest {
 
+        @NotNull(message = "Product ID is required")
+        @Positive(message = "Product ID must be greater than zero")
         private Long productId;
+
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be greater than zero")
         private Integer quantity;
 
         public Long getProductId() {
@@ -155,6 +164,8 @@ public class CartController {
 
     public static class CartQuantityRequest {
 
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be greater than zero")
         private Integer quantity;
 
         public Integer getQuantity() {

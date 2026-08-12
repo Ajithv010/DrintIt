@@ -18,6 +18,7 @@ import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.exception.AccessDeniedException;
 import com.ajith.drinkit.exception.InsufficientStockException;
 import com.ajith.drinkit.exception.InvalidCartOperationException;
+import com.ajith.drinkit.exception.InvalidOrderStatusException;
 import com.ajith.drinkit.exception.ResourceNotFoundException;
 import com.ajith.drinkit.mapper.OrderMapper;
 import com.ajith.drinkit.repository.AddressRepository;
@@ -60,10 +61,13 @@ public class OrderServiceImpl implements OrderService {
                         String email,
                         Long addressId) {
 
-                User user = userRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "User not found"));
+                User user = getUser(email);
+
+                if (addressId == null || addressId <= 0) {
+
+                        throw new InvalidCartOperationException(
+                                        "Address ID is required");
+                }
 
                 Address address = addressRepository
                                 .findByIdAndUser(addressId, user)
@@ -94,10 +98,33 @@ public class OrderServiceImpl implements OrderService {
 
                         Product product = cartItem.getProduct();
 
-                        if (!product.getActive()) {
+                        if (product == null) {
+
+                                throw new InvalidCartOperationException(
+                                                "Cart contains an invalid product");
+                        }
+
+                        if (!Boolean.TRUE.equals(
+                                        product.getActive())) {
 
                                 throw new InvalidCartOperationException(
                                                 "Product is inactive: "
+                                                                + product.getName());
+                        }
+
+                        if (product.getStock() == null ||
+                                        product.getStock() < 0) {
+
+                                throw new InvalidCartOperationException(
+                                                "Invalid stock for product: "
+                                                                + product.getName());
+                        }
+
+                        if (cartItem.getQuantity() == null ||
+                                        cartItem.getQuantity() <= 0) {
+
+                                throw new InvalidCartOperationException(
+                                                "Invalid quantity for product: "
                                                                 + product.getName());
                         }
 
@@ -108,14 +135,24 @@ public class OrderServiceImpl implements OrderService {
                                                                 + product.getName());
                         }
 
+                        if (product.getPrice() == null ||
+                                        product.getPrice() <= 0) {
+
+                                throw new InvalidCartOperationException(
+                                                "Invalid price for product: "
+                                                                + product.getName());
+                        }
+
                         OrderItem orderItem = new OrderItem();
 
                         orderItem.setOrder(order);
                         orderItem.setProduct(product);
-                        orderItem.setQuantity(cartItem.getQuantity());
+                        orderItem.setQuantity(
+                                        cartItem.getQuantity());
 
-                        // Save price at purchase time
-                        orderItem.setPrice(product.getPrice());
+                        // Save price at the time of purchase
+                        orderItem.setPrice(
+                                        product.getPrice());
 
                         double subtotal = product.getPrice()
                                         * cartItem.getQuantity();
@@ -126,6 +163,7 @@ public class OrderServiceImpl implements OrderService {
 
                         total += subtotal;
 
+                        // Reserve/deduct stock
                         product.setStock(
                                         product.getStock()
                                                         - cartItem.getQuantity());
@@ -137,6 +175,8 @@ public class OrderServiceImpl implements OrderService {
 
                 Order savedOrder = orderRepository.save(order);
 
+                // Clear cart only after order has been
+                // successfully created.
                 cart.getItems().clear();
 
                 cartRepository.save(cart);
@@ -149,13 +189,11 @@ public class OrderServiceImpl implements OrderService {
         // =========================
 
         @Override
+        @Transactional(readOnly = true)
         public List<OrderResponse> getMyOrders(
                         String email) {
 
-                User user = userRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "User not found"));
+                User user = getUser(email);
 
                 return orderRepository
                                 .findByUserOrderByCreatedAtDesc(user)
@@ -169,30 +207,57 @@ public class OrderServiceImpl implements OrderService {
         // =========================
 
         @Override
+        @Transactional(readOnly = true)
         public OrderResponse getOrderById(
                         String email,
                         Long orderId) {
 
-                User user = userRepository
-                                .findByEmail(email)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "User not found"));
+                User user = getUser(email);
 
-                Order order = orderRepository
-                                .findById(orderId)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Order not found"));
+                Order order = getOrder(orderId);
 
-                // Customer can access only their own order
-                if (!order.getUser()
-                                .getId()
-                                .equals(user.getId())) {
-
-                        throw new AccessDeniedException(
-                                        "You do not have permission to access this order");
-                }
+                checkOwnership(order, user);
 
                 return OrderMapper.toResponse(order);
+        }
+
+        // =========================
+        // CANCEL MY ORDER
+        // =========================
+
+        @Override
+        @Transactional
+        public OrderResponse cancelOrder(
+                        String email,
+                        Long orderId) {
+
+                User user = getUser(email);
+
+                Order order = getOrder(orderId);
+
+                checkOwnership(order, user);
+
+                /*
+                 * Customer can cancel only PENDING orders.
+                 *
+                 * Once payment succeeds, the order becomes
+                 * CONFIRMED. We do not have a refund system yet,
+                 * so allowing cancellation after payment would
+                 * create inconsistent business logic.
+                 */
+                if (order.getStatus() != OrderStatus.PENDING) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Only pending orders can be cancelled");
+                }
+
+                restoreStock(order);
+
+                order.setStatus(OrderStatus.CANCELLED);
+
+                Order savedOrder = orderRepository.save(order);
+
+                return OrderMapper.toResponse(savedOrder);
         }
 
         // =========================
@@ -200,6 +265,7 @@ public class OrderServiceImpl implements OrderService {
         // =========================
 
         @Override
+        @Transactional(readOnly = true)
         public List<OrderResponse> getAllOrders() {
 
                 return orderRepository
@@ -214,14 +280,19 @@ public class OrderServiceImpl implements OrderService {
         // =========================
 
         @Override
+        @Transactional
         public OrderResponse updateOrderStatus(
                         Long orderId,
                         String status) {
 
-                Order order = orderRepository
-                                .findById(orderId)
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                "Order not found"));
+                Order order = getOrder(orderId);
+
+                if (status == null ||
+                                status.trim().isEmpty()) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Order status is required");
+                }
 
                 OrderStatus newStatus;
 
@@ -232,39 +303,150 @@ public class OrderServiceImpl implements OrderService {
 
                 } catch (IllegalArgumentException e) {
 
-                        throw new IllegalArgumentException(
-                                        "Invalid order status");
+                        throw new InvalidOrderStatusException(
+                                        "Invalid order status. Use PENDING, CONFIRMED, DELIVERED or CANCELLED");
                 }
 
                 OrderStatus currentStatus = order.getStatus();
 
-                if (currentStatus == OrderStatus.DELIVERED ||
-                                currentStatus == OrderStatus.CANCELLED) {
+                if (currentStatus == OrderStatus.DELIVERED) {
 
-                        throw new IllegalStateException(
-                                        "Order status cannot be changed after completion");
+                        throw new InvalidOrderStatusException(
+                                        "Delivered order cannot be changed");
                 }
 
-                if (currentStatus == OrderStatus.PENDING &&
-                                newStatus != OrderStatus.CONFIRMED &&
-                                newStatus != OrderStatus.CANCELLED) {
+                if (currentStatus == OrderStatus.CANCELLED) {
 
-                        throw new IllegalStateException(
-                                        "PENDING order can only be CONFIRMED or CANCELLED");
+                        throw new InvalidOrderStatusException(
+                                        "Cancelled order cannot be changed");
                 }
 
-                if (currentStatus == OrderStatus.CONFIRMED &&
-                                newStatus != OrderStatus.DELIVERED &&
-                                newStatus != OrderStatus.CANCELLED) {
+                // Same status
+                if (currentStatus == newStatus) {
 
-                        throw new IllegalStateException(
-                                        "CONFIRMED order can only be DELIVERED or CANCELLED");
+                        throw new InvalidOrderStatusException(
+                                        "Order already has this status");
                 }
 
-                order.setStatus(newStatus);
+                // =========================
+                // PENDING
+                // =========================
+
+                if (currentStatus == OrderStatus.PENDING) {
+
+                        if (newStatus == OrderStatus.CONFIRMED) {
+
+                                order.setStatus(
+                                                OrderStatus.CONFIRMED);
+
+                        } else if (newStatus == OrderStatus.CANCELLED) {
+
+                                restoreStock(order);
+
+                                order.setStatus(
+                                                OrderStatus.CANCELLED);
+
+                        } else {
+
+                                throw new InvalidOrderStatusException(
+                                                "PENDING order can only be CONFIRMED or CANCELLED");
+                        }
+                }
+
+                // =========================
+                // CONFIRMED
+                // =========================
+
+                else if (currentStatus == OrderStatus.CONFIRMED) {
+
+                        if (newStatus == OrderStatus.DELIVERED) {
+
+                                order.setStatus(
+                                                OrderStatus.DELIVERED);
+
+                        } else {
+
+                                throw new InvalidOrderStatusException(
+                                                "CONFIRMED order can only be DELIVERED");
+                        }
+                }
 
                 Order savedOrder = orderRepository.save(order);
 
                 return OrderMapper.toResponse(savedOrder);
+        }
+
+        // =========================
+        // GET USER
+        // =========================
+
+        private User getUser(String email) {
+
+                return userRepository
+                                .findByEmail(email)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "User not found"));
+        }
+
+        // =========================
+        // GET ORDER
+        // =========================
+
+        private Order getOrder(Long orderId) {
+
+                if (orderId == null || orderId <= 0) {
+
+                        throw new InvalidOrderStatusException(
+                                        "Order ID must be valid");
+                }
+
+                return orderRepository
+                                .findById(orderId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Order not found"));
+        }
+
+        // =========================
+        // OWNERSHIP
+        // =========================
+
+        private void checkOwnership(
+                        Order order,
+                        User user) {
+
+                if (order.getUser() == null ||
+                                !order.getUser()
+                                                .getId()
+                                                .equals(user.getId())) {
+
+                        throw new AccessDeniedException(
+                                        "You do not have permission to access this order");
+                }
+        }
+
+        // =========================
+        // RESTORE STOCK
+        // =========================
+
+        private void restoreStock(Order order) {
+
+                for (OrderItem orderItem : order.getItems()) {
+
+                        Product product = orderItem.getProduct();
+
+                        if (product == null) {
+                                continue;
+                        }
+
+                        int currentStock = product.getStock() == null
+                                        ? 0
+                                        : product.getStock();
+
+                        product.setStock(
+                                        currentStock
+                                                        + orderItem.getQuantity());
+
+                        productRepository.save(product);
+                }
         }
 }

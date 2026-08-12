@@ -12,84 +12,106 @@ import com.ajith.drinkit.dto.AddressResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.AddressService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/api/addresses")
 public class AddressController {
 
-    private final AddressService addressService;
+        private final AddressService addressService;
 
-    public AddressController(
-            AddressService addressService) {
+        public AddressController(
+                        AddressService addressService) {
 
-        this.addressService = addressService;
-    }
+                this.addressService = addressService;
+        }
 
-    @PostMapping
-    public ResponseEntity<AddressResponse> createAddress(
-            Authentication authentication,
-            @RequestBody AddressRequest request) {
+        // =========================
+        // CREATE ADDRESS
+        // =========================
 
-        User user = (User) authentication.getPrincipal();
+        @PostMapping
+        public ResponseEntity<AddressResponse> createAddress(
+                        Authentication authentication,
+                        @Valid @RequestBody AddressRequest request) {
 
-        AddressResponse response = addressService.createAddress(
-                user.getEmail(),
-                request);
+                User user = (User) authentication.getPrincipal();
 
-        return new ResponseEntity<>(
-                response,
-                HttpStatus.CREATED);
-    }
+                AddressResponse response = addressService.createAddress(
+                                user.getEmail(),
+                                request);
 
-    @GetMapping
-    public ResponseEntity<List<AddressResponse>> getMyAddresses(
-            Authentication authentication) {
+                return new ResponseEntity<>(
+                                response,
+                                HttpStatus.CREATED);
+        }
 
-        User user = (User) authentication.getPrincipal();
+        // =========================
+        // GET MY ADDRESSES
+        // =========================
 
-        return ResponseEntity.ok(
-                addressService.getMyAddresses(
-                        user.getEmail()));
-    }
+        @GetMapping
+        public ResponseEntity<List<AddressResponse>> getMyAddresses(
+                        Authentication authentication) {
 
-    @GetMapping("/{addressId}")
-    public ResponseEntity<AddressResponse> getAddressById(
-            Authentication authentication,
-            @PathVariable Long addressId) {
+                User user = (User) authentication.getPrincipal();
 
-        User user = (User) authentication.getPrincipal();
+                return ResponseEntity.ok(
+                                addressService.getMyAddresses(
+                                                user.getEmail()));
+        }
 
-        return ResponseEntity.ok(
-                addressService.getAddressById(
-                        user.getEmail(),
-                        addressId));
-    }
+        // =========================
+        // GET ADDRESS BY ID
+        // =========================
 
-    @PutMapping("/{addressId}")
-    public ResponseEntity<AddressResponse> updateAddress(
-            Authentication authentication,
-            @PathVariable Long addressId,
-            @RequestBody AddressRequest request) {
+        @GetMapping("/{addressId}")
+        public ResponseEntity<AddressResponse> getAddressById(
+                        Authentication authentication,
+                        @PathVariable Long addressId) {
 
-        User user = (User) authentication.getPrincipal();
+                User user = (User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(
-                addressService.updateAddress(
-                        user.getEmail(),
-                        addressId,
-                        request));
-    }
+                return ResponseEntity.ok(
+                                addressService.getAddressById(
+                                                user.getEmail(),
+                                                addressId));
+        }
 
-    @DeleteMapping("/{addressId}")
-    public ResponseEntity<Void> deleteAddress(
-            Authentication authentication,
-            @PathVariable Long addressId) {
+        // =========================
+        // UPDATE ADDRESS
+        // =========================
 
-        User user = (User) authentication.getPrincipal();
+        @PutMapping("/{addressId}")
+        public ResponseEntity<AddressResponse> updateAddress(
+                        Authentication authentication,
+                        @PathVariable Long addressId,
+                        @Valid @RequestBody AddressRequest request) {
 
-        addressService.deleteAddress(
-                user.getEmail(),
-                addressId);
+                User user = (User) authentication.getPrincipal();
 
-        return ResponseEntity.noContent().build();
-    }
+                return ResponseEntity.ok(
+                                addressService.updateAddress(
+                                                user.getEmail(),
+                                                addressId,
+                                                request));
+        }
+
+        // =========================
+        // DELETE ADDRESS
+        // =========================
+
+        @DeleteMapping("/{addressId}")
+        public ResponseEntity<Void> deleteAddress(
+                        Authentication authentication,
+                        @PathVariable Long addressId) {
+
+                User user = (User) authentication.getPrincipal();
+
+                addressService.deleteAddress(
+                                user.getEmail(),
+                                addressId);
+
+                return ResponseEntity.noContent().build();
+        }
 }

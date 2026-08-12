@@ -1,5 +1,6 @@
 package com.ajith.drinkit.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,18 +26,40 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // =========================
+    // ORDER
+    // =========================
+
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
+
+    // =========================
+    // PRODUCT
+    // =========================
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    // =========================
+    // QUANTITY
+    // =========================
+
+    @Column(nullable = false)
     private Integer quantity;
 
-    // Price at the time of purchase
+    // =========================
+    // PRICE AT TIME OF ORDER
+    // =========================
+
+    @Column(nullable = false)
     private Double price;
 
+    // =========================
+    // SUBTOTAL
+    // =========================
+
+    @Column(nullable = false)
     private Double subtotal;
 }

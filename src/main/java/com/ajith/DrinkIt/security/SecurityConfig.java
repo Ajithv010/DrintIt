@@ -68,6 +68,7 @@ public class SecurityConfig {
                 };
 
                 http
+
                                 // =========================
                                 // CSRF
                                 // =========================
@@ -81,12 +82,20 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
 
                                                 // =========================
-                                                // PUBLIC ENDPOINTS
+                                                // PUBLIC
                                                 // =========================
 
                                                 .requestMatchers(
-                                                                "/api/users/register",
-                                                                "/api/auth/login",
+                                                                HttpMethod.POST,
+                                                                "/api/users/register")
+                                                .permitAll()
+
+                                                .requestMatchers(
+                                                                HttpMethod.POST,
+                                                                "/api/auth/login")
+                                                .permitAll()
+
+                                                .requestMatchers(
                                                                 "/error")
                                                 .permitAll()
 
@@ -94,27 +103,23 @@ public class SecurityConfig {
                                                 // PRODUCTS
                                                 // =========================
 
-                                                // CUSTOMER + ADMIN
-                                                // View products
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/products/**")
-                                                .hasAnyRole("CUSTOMER", "ADMIN")
+                                                .hasAnyRole(
+                                                                "CUSTOMER",
+                                                                "ADMIN")
 
-                                                // ADMIN ONLY
-                                                // Create product
                                                 .requestMatchers(
                                                                 HttpMethod.POST,
                                                                 "/api/products/**")
                                                 .hasRole("ADMIN")
 
-                                                // Update product
                                                 .requestMatchers(
                                                                 HttpMethod.PUT,
                                                                 "/api/products/**")
                                                 .hasRole("ADMIN")
 
-                                                // Delete product
                                                 .requestMatchers(
                                                                 HttpMethod.DELETE,
                                                                 "/api/products/**")
@@ -124,68 +129,61 @@ public class SecurityConfig {
                                                 // CATEGORIES
                                                 // =========================
 
-                                                // CUSTOMER + ADMIN
-                                                // View categories
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/categories/**")
-                                                .hasAnyRole("CUSTOMER", "ADMIN")
+                                                .hasAnyRole(
+                                                                "CUSTOMER",
+                                                                "ADMIN")
 
-                                                // ADMIN ONLY
-                                                // Create category
                                                 .requestMatchers(
                                                                 HttpMethod.POST,
                                                                 "/api/categories/**")
                                                 .hasRole("ADMIN")
 
-                                                // Update category
                                                 .requestMatchers(
                                                                 HttpMethod.PUT,
                                                                 "/api/categories/**")
                                                 .hasRole("ADMIN")
 
-                                                // Delete category
                                                 .requestMatchers(
                                                                 HttpMethod.DELETE,
                                                                 "/api/categories/**")
                                                 .hasRole("ADMIN")
 
                                                 // =========================
-                                                // CURRENT USER PROFILE
+                                                // CURRENT USER
                                                 // =========================
 
-                                                // CUSTOMER + ADMIN
-                                                // View own profile
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/users/me")
-                                                .hasAnyRole("CUSTOMER", "ADMIN")
+                                                .hasAnyRole(
+                                                                "CUSTOMER",
+                                                                "ADMIN")
 
-                                                // CUSTOMER + ADMIN
-                                                // Update own profile
                                                 .requestMatchers(
                                                                 HttpMethod.PUT,
                                                                 "/api/users/me")
-                                                .hasAnyRole("CUSTOMER", "ADMIN")
+                                                .hasAnyRole(
+                                                                "CUSTOMER",
+                                                                "ADMIN")
 
                                                 // =========================
                                                 // USER MANAGEMENT
                                                 // ADMIN ONLY
                                                 // =========================
 
-                                                // Get all users / get user by ID
                                                 .requestMatchers(
                                                                 HttpMethod.GET,
                                                                 "/api/users/**")
                                                 .hasRole("ADMIN")
 
-                                                // Update user by ID
                                                 .requestMatchers(
                                                                 HttpMethod.PUT,
                                                                 "/api/users/**")
                                                 .hasRole("ADMIN")
 
-                                                // Delete user
                                                 .requestMatchers(
                                                                 HttpMethod.DELETE,
                                                                 "/api/users/**")
@@ -193,12 +191,12 @@ public class SecurityConfig {
 
                                                 // =========================
                                                 // CART
-                                                // CUSTOMER + ADMIN
+                                                // CUSTOMER ONLY
                                                 // =========================
 
                                                 .requestMatchers(
                                                                 "/api/cart/**")
-                                                .hasAnyRole("CUSTOMER", "ADMIN")
+                                                .hasRole("CUSTOMER")
 
                                                 // =========================
                                                 // ORDERS
@@ -208,11 +206,23 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 "/api/orders/**")
                                                 .hasRole("CUSTOMER")
-                                                .requestMatchers("/api/admin/orders/**")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers("/api/payments/**")
+
+                                                // =========================
+                                                // PAYMENTS
+                                                // CUSTOMER ONLY
+                                                // =========================
+
+                                                .requestMatchers(
+                                                                "/api/payments/**")
                                                 .hasRole("CUSTOMER")
-                                                .requestMatchers("/api/addresses/**")
+
+                                                // =========================
+                                                // ADDRESSES
+                                                // CUSTOMER ONLY
+                                                // =========================
+
+                                                .requestMatchers(
+                                                                "/api/addresses/**")
                                                 .hasRole("CUSTOMER")
 
                                                 // =========================
