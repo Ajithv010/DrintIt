@@ -39,6 +39,7 @@ public class ProductController {
 
         // =========================
         // GET PRODUCTS
+        // PUBLIC
         // SEARCH / FILTER / SORT / PAGINATION
         // =========================
 
@@ -67,6 +68,45 @@ public class ProductController {
 
                         @RequestParam(defaultValue = "10") int size) {
 
+                /*
+                 * PUBLIC USER
+                 *
+                 * No authentication means the visitor is
+                 * browsing the store without logging in.
+                 *
+                 * Public users can only see active products.
+                 */
+
+                if (authentication == null) {
+
+                        active = true;
+
+                        var result = productService.searchProducts(
+                                        keyword,
+                                        categoryId,
+                                        minPrice,
+                                        maxPrice,
+                                        inStock,
+                                        active,
+                                        sortBy,
+                                        direction,
+                                        page,
+                                        size);
+
+                        ProductPageResponse response = new ProductPageResponse(
+                                        result.getContent(),
+                                        result.getNumber(),
+                                        result.getSize(),
+                                        result.getTotalElements(),
+                                        result.getTotalPages());
+
+                        return ResponseEntity.ok(response);
+                }
+
+                // =========================
+                // AUTHENTICATED USER
+                // =========================
+
                 User user = (User) authentication.getPrincipal();
 
                 String role = user.getRole().getRoleName();
@@ -77,8 +117,15 @@ public class ProductController {
 
                 if ("CUSTOMER".equalsIgnoreCase(role)) {
 
-                        // Customers can only see active products.
-                        // Ignore active=false sent by customer.
+                        /*
+                         * Customers can only see active products.
+                         *
+                         * Even if the customer sends:
+                         *
+                         * active=false
+                         *
+                         * we force it to true.
+                         */
 
                         active = true;
 
@@ -108,51 +155,60 @@ public class ProductController {
                 // ADMIN
                 // =========================
 
-                // Admin can see active and inactive products.
+                if ("ADMIN".equalsIgnoreCase(role)) {
 
-                if (keyword == null &&
-                                categoryId == null &&
-                                minPrice == null &&
-                                maxPrice == null &&
-                                inStock == null &&
-                                active == null &&
-                                page == 0 &&
-                                size == 10 &&
-                                "name".equalsIgnoreCase(sortBy) &&
-                                "asc".equalsIgnoreCase(direction)) {
+                        /*
+                         * Admin can see both active and inactive products.
+                         */
 
-                        return ResponseEntity.ok(
-                                        productService.getAllProducts());
+                        if (keyword == null
+                                        && categoryId == null
+                                        && minPrice == null
+                                        && maxPrice == null
+                                        && inStock == null
+                                        && active == null
+                                        && page == 0
+                                        && size == 10
+                                        && "name".equalsIgnoreCase(sortBy)
+                                        && "asc".equalsIgnoreCase(direction)) {
+
+                                return ResponseEntity.ok(
+                                                productService.getAllProducts());
+                        }
+
+                        var result = productService.searchProducts(
+                                        keyword,
+                                        categoryId,
+                                        minPrice,
+                                        maxPrice,
+                                        inStock,
+                                        active,
+                                        sortBy,
+                                        direction,
+                                        page,
+                                        size);
+
+                        ProductPageResponse response = new ProductPageResponse(
+                                        result.getContent(),
+                                        result.getNumber(),
+                                        result.getSize(),
+                                        result.getTotalElements(),
+                                        result.getTotalPages());
+
+                        return ResponseEntity.ok(response);
                 }
 
                 // =========================
-                // ADMIN SEARCH / FILTER
+                // UNKNOWN ROLE
                 // =========================
 
-                var result = productService.searchProducts(
-                                keyword,
-                                categoryId,
-                                minPrice,
-                                maxPrice,
-                                inStock,
-                                active,
-                                sortBy,
-                                direction,
-                                page,
-                                size);
-
-                ProductPageResponse response = new ProductPageResponse(
-                                result.getContent(),
-                                result.getNumber(),
-                                result.getSize(),
-                                result.getTotalElements(),
-                                result.getTotalPages());
-
-                return ResponseEntity.ok(response);
+                return ResponseEntity.status(
+                                HttpStatus.FORBIDDEN).build();
         }
 
         // =========================
         // GET PRODUCT BY ID
+        // PUBLIC
         // =========================
 
         @GetMapping("/{id}")
@@ -162,11 +218,30 @@ public class ProductController {
 
                 ProductResponse product = productService.getProductById(id);
 
+                /*
+                 * Public users can only see active products.
+                 */
+
+                if (authentication == null) {
+
+                        if (!Boolean.TRUE.equals(product.getActive())) {
+                                return ResponseEntity.notFound().build();
+                        }
+
+                        return ResponseEntity.ok(product);
+                }
+
+                // =========================
+                // AUTHENTICATED USER
+                // =========================
+
                 User user = (User) authentication.getPrincipal();
 
                 String role = user.getRole().getRoleName();
 
-                // Customer cannot access inactive product
+                /*
+                 * Customers cannot access inactive products.
+                 */
 
                 if ("CUSTOMER".equalsIgnoreCase(role)
                                 && !Boolean.TRUE.equals(product.getActive())) {

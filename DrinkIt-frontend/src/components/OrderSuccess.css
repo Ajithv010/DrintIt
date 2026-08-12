@@ -1,0 +1,58 @@
+.order-success {
+  min-height: 70vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.success-card {
+  width: 100%;
+  max-width: 550px;
+  padding: 50px 35px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+}
+
+.success-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #111;
+  color: white;
+
+  font-size: 32px;
+}
+
+.success-card .section-label {
+  margin-bottom: 10px;
+}
+
+.success-card h1 {
+  margin: 0 0 15px;
+  font-size: 32px;
+}
+
+.success-card p {
+  color: #666;
+  line-height: 1.6;
+}
+
+.success-card .shop-btn {
+  margin-top: 20px;
+  padding: 13px 25px;
+  border: none;
+  border-radius: 8px;
+  background: #181818;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
