@@ -31,11 +31,8 @@ public class SecurityConfig {
 
                 AuthenticationEntryPoint authenticationEntryPoint = (request, response, authException) -> {
 
-                        response.setStatus(
-                                        HttpStatus.UNAUTHORIZED.value());
-
-                        response.setContentType(
-                                        "application/json");
+                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                        response.setContentType("application/json");
 
                         response.getWriter().write("""
                                         {
@@ -52,11 +49,8 @@ public class SecurityConfig {
 
                 AccessDeniedHandler accessDeniedHandler = (request, response, accessDeniedException) -> {
 
-                        response.setStatus(
-                                        HttpStatus.FORBIDDEN.value());
-
-                        response.setContentType(
-                                        "application/json");
+                        response.setStatus(HttpStatus.FORBIDDEN.value());
+                        response.setContentType("application/json");
 
                         response.getWriter().write("""
                                         {
@@ -183,6 +177,14 @@ public class SecurityConfig {
                                                 .requestMatchers(
                                                                 HttpMethod.DELETE,
                                                                 "/api/users/**")
+                                                .hasRole("ADMIN")
+
+                                                // =========================
+                                                // ADMIN APIs
+                                                // =========================
+
+                                                .requestMatchers(
+                                                                "/api/admin/**")
                                                 .hasRole("ADMIN")
 
                                                 // =========================

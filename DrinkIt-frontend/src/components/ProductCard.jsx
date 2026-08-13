@@ -2,49 +2,115 @@ import { FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
 function ProductCard({ product }) {
-  const navigate = useNavigate();
 
-  return (
-    <div
-      className="product-card"
-      onClick={() => navigate(`/products/${product.id}`)}
-    >
+    const navigate = useNavigate();
 
-      <div className="product-image">
-        <img
-          src={`/images/${product.imageUrl}`}
-          alt={product.name}
-        />
-      </div>
+    // ========================================
+    // IMAGE URL
+    // ========================================
 
-      <div className="product-info">
+    const getImageUrl = () => {
 
-        <p className="product-brand">
-          {product.brand}
-        </p>
+        if (!product.imageUrl) {
+            return "/images/default-drink.png";
+        }
 
-        <h3>{product.name}</h3>
+        // If backend already returns a full URL
+        if (
+            product.imageUrl.startsWith("http://") ||
+            product.imageUrl.startsWith("https://")
+        ) {
+            return product.imageUrl;
+        }
 
-        <div className="product-bottom">
+        // If imageUrl is only a filename
+        return `/images/${product.imageUrl}`;
+    };
 
-          <strong>
-            ₹{product.price}
-          </strong>
+    // ========================================
+    // OPEN PRODUCT
+    // ========================================
 
-          <button
-            className="add-btn"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <FiPlus />
-            Add
-          </button>
+    const handleCardClick = () => {
+        navigate(`/products/${product.id}`);
+    };
 
-        </div>
+    // ========================================
+    // ADD TO CART
+    // ========================================
 
-      </div>
+    const handleAddToCart = (event) => {
 
-    </div>
-  );
+        event.stopPropagation();
+
+        // We will connect this to your existing
+        // cart functionality after the UI is finished.
+
+        console.log(
+            "Add to cart:",
+            product.name
+        );
+    };
+
+    // ========================================
+    // UI
+    // ========================================
+
+    return (
+
+        <article
+            className="product-card"
+            onClick={handleCardClick}
+        >
+
+            {/* IMAGE */}
+
+            <div className="product-image">
+
+                <img
+                    src={getImageUrl()}
+                    alt={product.name}
+                    onError={(event) => {
+                        event.currentTarget.src =
+                            "/images/default-drink.png";
+                    }}
+                />
+
+            </div>
+
+            {/* INFORMATION */}
+
+            <div className="product-info">
+
+                <p className="product-brand">
+                    {product.brand}
+                </p>
+
+                <h3>
+                    {product.name}
+                </h3>
+
+                <div className="product-bottom">
+
+                    <strong>
+                        ₹{product.price}
+                    </strong>
+
+                    <button
+                        type="button"
+                        className="add-btn"
+                        onClick={handleAddToCart}
+                    >
+                        <FiPlus size={15} />
+                        <span>Add</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </article>
+    );
 }
 
 export default ProductCard;

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import com.ajith.drinkit.dto.OrderResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.OrderService;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -102,5 +104,19 @@ public class OrderController {
                                 orderService.updateOrderStatus(
                                                 orderId,
                                                 status));
+        }
+
+        @PutMapping("/{orderId}/cancel")
+        public ResponseEntity<OrderResponse> cancelOrder(
+                        @PathVariable Long orderId,
+                        Authentication authentication) {
+
+                User user = (User) authentication.getPrincipal();
+
+                OrderResponse response = orderService.cancelOrder(
+                                user.getEmail(),
+                                orderId);
+
+                return ResponseEntity.ok(response);
         }
 }

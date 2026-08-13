@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FiArrowLeft, FiPackage } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiPackage,
+} from "react-icons/fi";
 
 import api from "../services/api";
 import "./OrderDetails.css";
@@ -11,11 +14,19 @@ function OrderDetails() {
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState("");
+
+  // ========================================
+  // LOAD ORDER
+  // ========================================
 
   useEffect(() => {
     const loadOrder = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const response = await api.get(
           `/orders/${id}`
         );
@@ -44,6 +55,50 @@ function OrderDetails() {
     loadOrder();
   }, [id, navigate]);
 
+  // ========================================
+  // CANCEL ORDER
+  // ========================================
+
+  const handleCancelOrder = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this order?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setCancelling(true);
+      setError("");
+
+      const response = await api.put(
+        `/orders/${id}/cancel`
+      );
+
+      setOrder(response.data);
+
+      alert("Order cancelled successfully.");
+
+    } catch (err) {
+      console.error(
+        "Error cancelling order:",
+        err
+      );
+
+      setError(
+        err.response?.data?.message ||
+          "Unable to cancel order."
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  // ========================================
+  // LOADING
+  // ========================================
+
   if (loading) {
     return (
       <main className="order-details-page">
@@ -51,6 +106,10 @@ function OrderDetails() {
       </main>
     );
   }
+
+  // ========================================
+  // ERROR
+  // ========================================
 
   if (error || !order) {
     return (
@@ -74,6 +133,10 @@ function OrderDetails() {
     );
   }
 
+  // ========================================
+  // ORDER DATA
+  // ========================================
+
   const items =
     order.items ||
     order.orderItems ||
@@ -91,6 +154,10 @@ function OrderDetails() {
   const status =
     order.status ||
     "PENDING";
+
+  // ========================================
+  // UI
+  // ========================================
 
   return (
     <main className="order-details-page">
@@ -131,9 +198,19 @@ function OrderDetails() {
 
       </div>
 
+      {/* ERROR */}
+
+      {error && (
+        <p className="login-error">
+          {error}
+        </p>
+      )}
+
       <div className="order-details-layout">
 
-        {/* ITEMS */}
+        {/* ====================================
+            ORDER ITEMS
+        ==================================== */}
 
         <section className="order-details-card">
 
@@ -144,11 +221,13 @@ function OrderDetails() {
           {items.length === 0 ? (
 
             <div className="no-order-items">
+
               <FiPackage />
 
               <p>
                 No items found.
               </p>
+
             </div>
 
           ) : (
@@ -208,12 +287,13 @@ function OrderDetails() {
               )}
 
             </div>
-
           )}
 
         </section>
 
-        {/* SUMMARY */}
+        {/* ====================================
+            ORDER SUMMARY
+        ==================================== */}
 
         <aside className="order-details-summary">
 
@@ -246,6 +326,26 @@ function OrderDetails() {
             </strong>
 
           </div>
+
+          {/* ==================================
+              CANCEL ORDER
+          ================================== */}
+
+          {String(status).toUpperCase() ===
+            "PENDING" && (
+
+            <button
+              type="button"
+              className="cancel-order-btn"
+              onClick={handleCancelOrder}
+              disabled={cancelling}
+            >
+              {cancelling
+                ? "Cancelling..."
+                : "Cancel Order"}
+            </button>
+
+          )}
 
         </aside>
 

@@ -101,7 +101,7 @@ function Navbar() {
 
         <div
           className="logo"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         >
           Drink<span>It</span>
         </div>

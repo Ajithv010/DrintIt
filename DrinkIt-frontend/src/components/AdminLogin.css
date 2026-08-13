@@ -1,0 +1,168 @@
+.admin-login-page {
+  min-height: 80vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 40px 20px;
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 420px;
+
+  padding: 40px;
+
+  background: #fff;
+
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+.admin-login-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 20px;
+
+  border-radius: 12px;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 24px;
+}
+
+.admin-login-label {
+  margin: 0;
+
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.admin-login-card h1 {
+  margin: 8px 0;
+
+  font-size: 32px;
+}
+
+.admin-login-subtitle {
+  margin-bottom: 30px;
+
+  color: #777;
+}
+
+.admin-login-field {
+  margin-bottom: 20px;
+}
+
+.admin-login-field label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-login-field input {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 13px 14px;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  outline: none;
+
+  font-size: 14px;
+}
+
+.admin-login-field input:focus {
+  border-color: #111;
+}
+
+.admin-password-wrapper {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+}
+
+.admin-password-wrapper svg {
+  position: absolute;
+  left: 13px;
+
+  color: #777;
+}
+
+.admin-password-wrapper input {
+  padding-left: 40px;
+}
+
+.admin-login-error {
+  margin-bottom: 15px;
+
+  color: #d62828;
+
+  font-size: 14px;
+}
+
+.admin-login-btn {
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111;
+  color: #fff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-login-btn:hover {
+  opacity: 0.85;
+}
+
+.admin-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-back-btn {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  margin-top: 20px;
+
+  border: none;
+  background: transparent;
+
+  color: #555;
+
+  cursor: pointer;
+
+  font-size: 14px;
+}
+
+.admin-back-btn:hover {
+  color: #111;
+}
