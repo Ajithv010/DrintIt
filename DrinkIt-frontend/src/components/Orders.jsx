@@ -12,17 +12,16 @@ function Orders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // ========================================
+  // LOAD ORDERS
+  // ========================================
+
   useEffect(() => {
     const loadOrders = async () => {
       try {
         const response = await api.get("/orders");
 
         const data = response.data;
-
-        // Supports either:
-        // [ ...orders ]
-        // { content: [ ...orders ] }
-        // { orders: [ ...orders ] }
 
         if (Array.isArray(data)) {
           setOrders(data);
@@ -33,11 +32,21 @@ function Orders() {
         } else {
           setOrders([]);
         }
+
       } catch (err) {
-        console.error("Error loading orders:", err);
+        console.error(
+          "Error loading orders:",
+          err
+        );
 
         if (err.response?.status === 401) {
-          localStorage.removeItem("drinkit_token");
+          localStorage.removeItem(
+            "drinkit_token"
+          );
+
+          localStorage.removeItem(
+            "drinkit_role"
+          );
 
           window.dispatchEvent(
             new Event("authUpdated")
@@ -47,7 +56,11 @@ function Orders() {
           return;
         }
 
-        setError("Unable to load your orders.");
+        setError(
+          err.response?.data?.message ||
+            "Unable to load your orders."
+        );
+
       } finally {
         setLoading(false);
       }
@@ -63,7 +76,11 @@ function Orders() {
   if (loading) {
     return (
       <main className="orders-page">
-        <p>Loading orders...</p>
+
+        <p>
+          Loading orders...
+        </p>
+
       </main>
     );
   }
@@ -75,33 +92,33 @@ function Orders() {
   if (error) {
     return (
       <main className="orders-page">
-        <button
-  type="button"
-  className="view-order-btn"
-  onClick={(e) => {
-    e.stopPropagation();
-    navigate(`/orders/${orderId}`);
-  }}
->
-  View Order Details →
-</button>
 
         <button
+          type="button"
           className="back-btn"
-          onClick={() => navigate("/account")}
+          onClick={() =>
+            navigate("/account")
+          }
         >
           <FiArrowLeft />
           Back to Account
         </button>
 
         <div className="orders-message">
-          <h2>{error}</h2>
+
+          <h2>
+            {error}
+          </h2>
 
           <button
-            onClick={() => navigate("/")}
+            type="button"
+            onClick={() =>
+              navigate("/home")
+            }
           >
             Continue Shopping
           </button>
+
         </div>
 
       </main>
@@ -109,7 +126,7 @@ function Orders() {
   }
 
   // ========================================
-  // EMPTY
+  // EMPTY ORDERS
   // ========================================
 
   if (orders.length === 0) {
@@ -117,8 +134,11 @@ function Orders() {
       <main className="orders-page">
 
         <button
+          type="button"
           className="back-btn"
-          onClick={() => navigate("/account")}
+          onClick={() =>
+            navigate("/account")
+          }
         >
           <FiArrowLeft />
           Back to Account
@@ -130,7 +150,9 @@ function Orders() {
             ORDER HISTORY
           </p>
 
-          <h1>My Orders</h1>
+          <h1>
+            My Orders
+          </h1>
 
         </div>
 
@@ -143,11 +165,15 @@ function Orders() {
           </h2>
 
           <p>
-            Your completed orders will appear here.
+            Your completed orders will
+            appear here.
           </p>
 
           <button
-            onClick={() => navigate("/")}
+            type="button"
+            onClick={() =>
+              navigate("/home")
+            }
           >
             Start Shopping
           </button>
@@ -165,17 +191,25 @@ function Orders() {
   return (
     <main className="orders-page">
 
+      {/* BACK TO ACCOUNT */}
+
       <button
+        type="button"
         className="back-btn"
-        onClick={() => navigate("/account")}
+        onClick={() =>
+          navigate("/account")
+        }
       >
         <FiArrowLeft />
         Back to Account
       </button>
 
+      {/* HEADER */}
+
       <div className="orders-header">
 
         <div>
+
           <p className="section-label">
             ORDER HISTORY
           </p>
@@ -183,6 +217,7 @@ function Orders() {
           <h1>
             My Orders
           </h1>
+
         </div>
 
         <span>
@@ -193,6 +228,8 @@ function Orders() {
         </span>
 
       </div>
+
+      {/* ORDER LIST */}
 
       <section className="orders-list">
 
@@ -219,15 +256,22 @@ function Orders() {
             "PLACED";
 
           return (
-          <article
-  className="order-card"
-  key={orderId}
-  onClick={() => navigate(`/orders/${orderId}`)}
->
+            <article
+              className="order-card"
+              key={orderId}
+              onClick={() =>
+                navigate(
+                  `/orders/${orderId}`
+                )
+              }
+            >
+
+              {/* ORDER TOP */}
 
               <div className="order-top">
 
                 <div>
+
                   <span>
                     Order
                   </span>
@@ -235,6 +279,7 @@ function Orders() {
                   <h2>
                     #{orderId}
                   </h2>
+
                 </div>
 
                 <span
@@ -249,6 +294,8 @@ function Orders() {
 
               <div className="order-divider" />
 
+              {/* ORDER ITEMS */}
+
               <div className="order-items">
 
                 {orderItems.length > 0 ? (
@@ -259,13 +306,16 @@ function Orders() {
                       const name =
                         item.productName ??
                         item.name ??
+                        item.product?.name ??
                         "Drink";
 
                       const quantity =
                         item.quantity ?? 1;
 
                       const price =
-                        item.price ?? 0;
+                        item.price ??
+                        item.unitPrice ??
+                        0;
 
                       return (
                         <div
@@ -278,6 +328,7 @@ function Orders() {
                         >
 
                           <div>
+
                             <strong>
                               {name}
                             </strong>
@@ -285,6 +336,7 @@ function Orders() {
                             <p>
                               Qty: {quantity}
                             </p>
+
                           </div>
 
                           <strong>
@@ -308,6 +360,8 @@ function Orders() {
               </div>
 
               <div className="order-divider" />
+
+              {/* ORDER BOTTOM */}
 
               <div className="order-bottom">
 

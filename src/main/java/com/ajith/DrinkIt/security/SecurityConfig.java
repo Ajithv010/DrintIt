@@ -25,14 +25,17 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(
                         HttpSecurity http) throws Exception {
 
-                // =========================
+                // ========================================
                 // 401 UNAUTHORIZED
-                // =========================
+                // ========================================
 
                 AuthenticationEntryPoint authenticationEntryPoint = (request, response, authException) -> {
 
-                        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                        response.setContentType("application/json");
+                        response.setStatus(
+                                        HttpStatus.UNAUTHORIZED.value());
+
+                        response.setContentType(
+                                        "application/json");
 
                         response.getWriter().write("""
                                         {
@@ -43,14 +46,17 @@ public class SecurityConfig {
                                         """);
                 };
 
-                // =========================
+                // ========================================
                 // 403 FORBIDDEN
-                // =========================
+                // ========================================
 
                 AccessDeniedHandler accessDeniedHandler = (request, response, accessDeniedException) -> {
 
-                        response.setStatus(HttpStatus.FORBIDDEN.value());
-                        response.setContentType("application/json");
+                        response.setStatus(
+                                        HttpStatus.FORBIDDEN.value());
+
+                        response.setContentType(
+                                        "application/json");
 
                         response.getWriter().write("""
                                         {
@@ -62,177 +68,190 @@ public class SecurityConfig {
                 };
 
                 http
-
-                                // =========================
+                                // ========================================
                                 // CSRF
-                                // =========================
+                                // ========================================
 
                                 .csrf(csrf -> csrf.disable())
 
-                                // =========================
+                                // ========================================
                                 // AUTHORIZATION
-                                // =========================
+                                // ========================================
 
-                                .authorizeHttpRequests(auth -> auth
+                                .authorizeHttpRequests(auth -> {
 
-                                                // =========================
-                                                // PUBLIC
-                                                // =========================
+                                        // ====================================
+                                        // PUBLIC
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                HttpMethod.POST,
-                                                                "/api/users/register")
-                                                .permitAll()
+                                        auth.requestMatchers(
+                                                        HttpMethod.POST,
+                                                        "/api/users/register").permitAll();
 
-                                                .requestMatchers(
-                                                                HttpMethod.POST,
-                                                                "/api/auth/login")
-                                                .permitAll()
+                                        auth.requestMatchers(
+                                                        HttpMethod.POST,
+                                                        "/api/auth/login").permitAll();
 
-                                                .requestMatchers(
-                                                                "/error")
-                                                .permitAll()
+                                        auth.requestMatchers(
+                                                        "/error").permitAll();
 
-                                                // =========================
-                                                // PRODUCTS
-                                                // =========================
+                                        // ====================================
+                                        // PRODUCTS
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                HttpMethod.GET,
-                                                                "/api/products/**")
-                                                .permitAll()
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/products/**").permitAll();
 
-                                                .requestMatchers(
-                                                                HttpMethod.POST,
-                                                                "/api/products/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.POST,
+                                                        "/api/products/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.PUT,
-                                                                "/api/products/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/products/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.DELETE,
-                                                                "/api/products/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.DELETE,
+                                                        "/api/products/**").hasRole("ADMIN");
 
-                                                // =========================
-                                                // CATEGORIES
-                                                // =========================
+                                        // ====================================
+                                        // CATEGORIES
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                HttpMethod.GET,
-                                                                "/api/categories/**")
-                                                .permitAll()
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/categories/**").permitAll();
 
-                                                .requestMatchers(
-                                                                HttpMethod.POST,
-                                                                "/api/categories/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.POST,
+                                                        "/api/categories/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.PUT,
-                                                                "/api/categories/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/categories/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.DELETE,
-                                                                "/api/categories/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.DELETE,
+                                                        "/api/categories/**").hasRole("ADMIN");
 
-                                                // =========================
-                                                // CURRENT USER
-                                                // =========================
+                                        // ====================================
+                                        // CURRENT USER
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                HttpMethod.GET,
-                                                                "/api/users/me")
-                                                .hasAnyRole(
-                                                                "CUSTOMER",
-                                                                "ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/users/me").hasAnyRole(
+                                                                        "CUSTOMER",
+                                                                        "ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.PUT,
-                                                                "/api/users/me")
-                                                .hasAnyRole(
-                                                                "CUSTOMER",
-                                                                "ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/users/me").hasAnyRole(
+                                                                        "CUSTOMER",
+                                                                        "ADMIN");
 
-                                                // =========================
-                                                // USER MANAGEMENT
-                                                // ADMIN ONLY
-                                                // =========================
+                                        // ====================================
+                                        // USER MANAGEMENT
+                                        // ADMIN ONLY
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                HttpMethod.GET,
-                                                                "/api/users/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/users/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.PUT,
-                                                                "/api/users/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/users/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                HttpMethod.DELETE,
-                                                                "/api/users/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        HttpMethod.DELETE,
+                                                        "/api/users/**").hasRole("ADMIN");
 
-                                                // =========================
-                                                // ADMIN APIs
-                                                // =========================
+                                        // ====================================
+                                        // ADMIN APIs
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                "/api/admin/**")
-                                                .hasRole("ADMIN")
+                                        auth.requestMatchers(
+                                                        "/api/admin/**").hasRole("ADMIN");
 
-                                                // =========================
-                                                // CART
-                                                // CUSTOMER ONLY
-                                                // =========================
+                                        // ====================================
+                                        // ADMIN ORDERS
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                "/api/cart/**")
-                                                .hasRole("CUSTOMER")
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/orders/admin/all").hasRole("ADMIN");
 
-                                                // =========================
-                                                // ORDERS
-                                                // CUSTOMER ONLY
-                                                // =========================
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/orders/admin/**").hasRole("ADMIN");
 
-                                                .requestMatchers(
-                                                                "/api/orders/**")
-                                                .hasRole("CUSTOMER")
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/orders/*/status").hasRole("ADMIN");
 
-                                                // =========================
-                                                // PAYMENTS
-                                                // CUSTOMER ONLY
-                                                // =========================
+                                        // ====================================
+                                        // CART
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                "/api/payments/**")
-                                                .hasRole("CUSTOMER")
+                                        auth.requestMatchers(
+                                                        "/api/cart/**").hasRole("CUSTOMER");
 
-                                                // =========================
-                                                // ADDRESSES
-                                                // CUSTOMER ONLY
-                                                // =========================
+                                        // ====================================
+                                        // CUSTOMER - PLACE ORDER
+                                        // ====================================
 
-                                                .requestMatchers(
-                                                                "/api/addresses/**")
-                                                .hasRole("CUSTOMER")
+                                        auth.requestMatchers(
+                                                        HttpMethod.POST,
+                                                        "/api/orders").hasRole("CUSTOMER");
 
-                                                // =========================
-                                                // EVERYTHING ELSE
-                                                // =========================
+                                        // ====================================
+                                        // CUSTOMER - CANCEL ORDER
+                                        // ====================================
 
-                                                .anyRequest()
-                                                .authenticated())
+                                        auth.requestMatchers(
+                                                        HttpMethod.DELETE,
+                                                        "/api/orders/**").hasRole("CUSTOMER");
 
-                                // =========================
+                                        auth.requestMatchers(
+                                                        HttpMethod.PUT,
+                                                        "/api/orders/*/cancel").hasRole("CUSTOMER");
+
+                                        // ====================================
+                                        // CUSTOMER - READ ORDERS
+                                        // ====================================
+
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/api/orders/**").hasAnyRole(
+                                                                        "CUSTOMER",
+                                                                        "ADMIN");
+
+                                        // ====================================
+                                        // PAYMENTS
+                                        // ====================================
+
+                                        auth.requestMatchers(
+                                                        "/api/payments/**").hasRole("CUSTOMER");
+
+                                        // ====================================
+                                        // ADDRESSES
+                                        // ====================================
+
+                                        auth.requestMatchers(
+                                                        "/api/addresses/**").hasRole("CUSTOMER");
+
+                                        // ====================================
+                                        // EVERYTHING ELSE
+                                        // ====================================
+
+                                        auth.anyRequest().authenticated();
+                                })
+
+                                // ========================================
                                 // EXCEPTION HANDLING
-                                // =========================
+                                // ========================================
 
                                 .exceptionHandling(exception -> exception
 
@@ -242,19 +261,20 @@ public class SecurityConfig {
                                                 .accessDeniedHandler(
                                                                 accessDeniedHandler))
 
-                                // =========================
+                                // ========================================
                                 // JWT FILTER
-                                // =========================
+                                // ========================================
 
                                 .addFilterBefore(
                                                 jwtAuthenticationFilter,
                                                 UsernamePasswordAuthenticationFilter.class)
 
-                                // =========================
+                                // ========================================
                                 // DISABLE BASIC AUTH
-                                // =========================
+                                // ========================================
 
-                                .httpBasic(httpBasic -> httpBasic.disable());
+                                .httpBasic(
+                                                httpBasic -> httpBasic.disable());
 
                 return http.build();
         }

@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-
+import "./Products.css";
 import ProductCard from "./ProductCard";
 import { getProducts } from "../services/productService";
 
 function Products() {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams, setSearchParams] =
+        useSearchParams();
 
     // =========================
     // URL PARAMETERS
     // =========================
 
-    const categoryId = searchParams.get("categoryId");
-    const keyword = searchParams.get("keyword");
+    const categoryId =
+        searchParams.get("categoryId");
+
+    const keyword =
+        searchParams.get("keyword");
 
     const currentPage = Number(
         searchParams.get("page") || 0
@@ -22,35 +26,45 @@ function Products() {
     // STATE
     // =========================
 
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] =
+        useState([]);
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] =
+        useState(true);
 
-    const [error, setError] = useState("");
+    const [error, setError] =
+        useState("");
 
-    const [totalPages, setTotalPages] = useState(0);
+    const [totalPages, setTotalPages] =
+        useState(0);
 
-    const [totalElements, setTotalElements] = useState(0);
+    const [totalElements, setTotalElements] =
+        useState(0);
 
-    const [minPrice, setMinPrice] = useState(
-        searchParams.get("minPrice") || ""
-    );
+    const [minPrice, setMinPrice] =
+        useState(
+            searchParams.get("minPrice") || ""
+        );
 
-    const [maxPrice, setMaxPrice] = useState(
-        searchParams.get("maxPrice") || ""
-    );
+    const [maxPrice, setMaxPrice] =
+        useState(
+            searchParams.get("maxPrice") || ""
+        );
 
-    const [inStock, setInStock] = useState(
-        searchParams.get("inStock") || ""
-    );
+    const [inStock, setInStock] =
+        useState(
+            searchParams.get("inStock") || ""
+        );
 
-    const [sortBy, setSortBy] = useState(
-        searchParams.get("sortBy") || "name"
-    );
+    const [sortBy, setSortBy] =
+        useState(
+            searchParams.get("sortBy") || "name"
+        );
 
-    const [direction, setDirection] = useState(
-        searchParams.get("direction") || "asc"
-    );
+    const [direction, setDirection] =
+        useState(
+            searchParams.get("direction") || "asc"
+        );
 
     // =========================
     // LOAD PRODUCTS
@@ -62,42 +76,49 @@ function Products() {
                 setLoading(true);
                 setError("");
 
-                const data = await getProducts({
-                    categoryId: categoryId
-                        ? Number(categoryId)
-                        : undefined,
+                const data =
+                    await getProducts({
+                        categoryId: categoryId
+                            ? Number(categoryId)
+                            : undefined,
 
-                    keyword: keyword || undefined,
+                        keyword:
+                            keyword || undefined,
 
-                    minPrice: minPrice
-                        ? Number(minPrice)
-                        : undefined,
+                        minPrice: minPrice
+                            ? Number(minPrice)
+                            : undefined,
 
-                    maxPrice: maxPrice
-                        ? Number(maxPrice)
-                        : undefined,
+                        maxPrice: maxPrice
+                            ? Number(maxPrice)
+                            : undefined,
 
-                    inStock:
-                        inStock === ""
-                            ? undefined
-                            : inStock === "true",
+                        inStock:
+                            inStock === ""
+                                ? undefined
+                                : inStock === "true",
 
-                    page: currentPage,
+                        page: currentPage,
 
-                    size: 10,
+                        size: 10,
 
-                    sortBy,
+                        sortBy,
 
-                    direction,
-                });
+                        direction,
+                    });
 
-                setProducts(data.content || []);
+                setProducts(
+                    data.content || []
+                );
 
-                setTotalPages(data.totalPages || 0);
+                setTotalPages(
+                    data.totalPages || 0
+                );
 
                 setTotalElements(
                     data.totalElements || 0
                 );
+
             } catch (err) {
                 console.error(
                     "Error loading products:",
@@ -109,12 +130,14 @@ function Products() {
                 );
 
                 setProducts([]);
+
             } finally {
                 setLoading(false);
             }
         };
 
         loadProducts();
+
     }, [
         categoryId,
         keyword,
@@ -171,11 +194,15 @@ function Products() {
     // =========================
 
     const changePage = (page) => {
-        const params = new URLSearchParams(
-            searchParams
-        );
+        const params =
+            new URLSearchParams(
+                searchParams
+            );
 
-        params.set("page", page);
+        params.set(
+            "page",
+            page
+        );
 
         setSearchParams(params);
 
@@ -229,274 +256,376 @@ function Products() {
     // UI
     // =========================
 
+    const headingText = keyword
+        ? `Search results for "${keyword}"`
+        : categoryId
+            ? "Drinks in this category"
+            : "All Drinks";
+
     return (
-        <main className="section">
+        <main className="products-page">
 
-            {/* =========================
+            {/* =================================
                 HEADER
-            ========================= */}
+            ================================= */}
 
-            <div className="section-header">
+            <section className="products-header">
 
                 <div>
 
-                    <p className="section-label">
+                    <p className="products-label">
                         {keyword
                             ? "SEARCH"
                             : "DRINKS"}
                     </p>
 
-                    <h2>
-                        {keyword
-                            ? `Search results for "${keyword}"`
-                            : categoryId
-                                ? "Drinks in this category"
-                                : "All Drinks"}
-                    </h2>
+                    <h1>
+                        {headingText}
+                    </h1>
+
+                    {!loading &&
+                        !error && (
+                            <p className="products-subtitle">
+                                {totalElements}{" "}
+                                {totalElements === 1
+                                    ? "drink"
+                                    : "drinks"}{" "}
+                                available
+                            </p>
+                        )}
 
                 </div>
 
-            </div>
+            </section>
 
-            {/* =========================
-                FILTERS
-            ========================= */}
+            {/* =================================
+                FILTER CARD
+            ================================= */}
 
-            <div className="product-filters">
+            <section className="products-filter-card">
 
-                {/* MIN PRICE */}
+                <div className="products-filter-grid">
 
-                <div>
-                    <label>
-                        Min Price
-                    </label>
+                    {/* MIN PRICE */}
 
-                    <input
-                        type="number"
-                        min="0"
-                        placeholder="₹ Min"
-                        value={minPrice}
-                        onChange={(e) =>
-                            setMinPrice(
-                                e.target.value
-                            )
-                        }
-                    />
+                    <div className="product-filter-field">
+
+                        <label>
+                            Min Price
+                        </label>
+
+                        <div className="price-input">
+
+                            <span>₹</span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="Minimum"
+                                value={minPrice}
+                                onChange={(e) =>
+                                    setMinPrice(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                    </div>
+
+                    {/* MAX PRICE */}
+
+                    <div className="product-filter-field">
+
+                        <label>
+                            Max Price
+                        </label>
+
+                        <div className="price-input">
+
+                            <span>₹</span>
+
+                            <input
+                                type="number"
+                                min="0"
+                                placeholder="Maximum"
+                                value={maxPrice}
+                                onChange={(e) =>
+                                    setMaxPrice(
+                                        e.target.value
+                                    )
+                                }
+                            />
+
+                        </div>
+
+                    </div>
+
+                    {/* AVAILABILITY */}
+
+                    <div className="product-filter-field">
+
+                        <label>
+                            Availability
+                        </label>
+
+                        <select
+                            value={inStock}
+                            onChange={(e) =>
+                                setInStock(
+                                    e.target.value
+                                )
+                            }
+                        >
+
+                            <option value="">
+                                All Products
+                            </option>
+
+                            <option value="true">
+                                In Stock
+                            </option>
+
+                            <option value="false">
+                                Out of Stock
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {/* SORT */}
+
+                    <div className="product-filter-field">
+
+                        <label>
+                            Sort By
+                        </label>
+
+                        <select
+                            value={sortBy}
+                            onChange={(e) =>
+                                setSortBy(
+                                    e.target.value
+                                )
+                            }
+                        >
+
+                            <option value="name">
+                                Name
+                            </option>
+
+                            <option value="price">
+                                Price
+                            </option>
+
+                            <option value="stock">
+                                Stock
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    {/* ORDER */}
+
+                    <div className="product-filter-field">
+
+                        <label>
+                            Order
+                        </label>
+
+                        <select
+                            value={direction}
+                            onChange={(e) =>
+                                setDirection(
+                                    e.target.value
+                                )
+                            }
+                        >
+
+                            <option value="asc">
+                                Low → High
+                            </option>
+
+                            <option value="desc">
+                                High → Low
+                            </option>
+
+                        </select>
+
+                    </div>
+
                 </div>
 
-                {/* MAX PRICE */}
+                {/* BUTTONS */}
 
-                <div>
-                    <label>
-                        Max Price
-                    </label>
+                <div className="products-filter-actions">
 
-                    <input
-                        type="number"
-                        min="0"
-                        placeholder="₹ Max"
-                        value={maxPrice}
-                        onChange={(e) =>
-                            setMaxPrice(
-                                e.target.value
-                            )
-                        }
-                    />
-                </div>
-
-                {/* STOCK */}
-
-                <div>
-                    <label>
-                        Availability
-                    </label>
-
-                    <select
-                        value={inStock}
-                        onChange={(e) =>
-                            setInStock(
-                                e.target.value
-                            )
+                    <button
+                        type="button"
+                        className="products-apply-btn"
+                        onClick={
+                            applyFilters
                         }
                     >
-                        <option value="">
-                            All
-                        </option>
+                        Apply Filters
+                    </button>
 
-                        <option value="true">
-                            In Stock
-                        </option>
-
-                        <option value="false">
-                            Out of Stock
-                        </option>
-                    </select>
-                </div>
-
-                {/* SORT */}
-
-                <div>
-                    <label>
-                        Sort By
-                    </label>
-
-                    <select
-                        value={sortBy}
-                        onChange={(e) =>
-                            setSortBy(
-                                e.target.value
-                            )
+                    <button
+                        type="button"
+                        className="products-reset-btn"
+                        onClick={
+                            resetFilters
                         }
                     >
-                        <option value="name">
-                            Name
-                        </option>
+                        Reset
+                    </button>
 
-                        <option value="price">
-                            Price
-                        </option>
-
-                        <option value="stock">
-                            Stock
-                        </option>
-                    </select>
                 </div>
 
-                {/* DIRECTION */}
+            </section>
 
-                <div>
-                    <label>
-                        Order
-                    </label>
-
-                    <select
-                        value={direction}
-                        onChange={(e) =>
-                            setDirection(
-                                e.target.value
-                            )
-                        }
-                    >
-                        <option value="asc">
-                            Low → High
-                        </option>
-
-                        <option value="desc">
-                            High → Low
-                        </option>
-                    </select>
-                </div>
-
-                {/* APPLY */}
-
-                <button
-                    onClick={applyFilters}
-                >
-                    Apply Filters
-                </button>
-
-                {/* RESET */}
-
-                <button
-                    onClick={resetFilters}
-                >
-                    Reset
-                </button>
-
-            </div>
-
-            {/* =========================
-                RESULT COUNT
-            ========================= */}
+            {/* =================================
+                RESULTS
+            ================================= */}
 
             {!loading &&
                 !error &&
                 totalElements > 0 && (
 
-                    <p>
-                        {totalElements} drinks found
-                    </p>
+                    <div className="products-results-row">
 
+                        <p>
+                            <strong>
+                                {totalElements}
+                            </strong>{" "}
+                            drinks found
+                        </p>
+
+                    </div>
                 )}
 
-            {/* =========================
+            {/* =================================
                 LOADING
-            ========================= */}
+            ================================= */}
 
             {loading && (
-                <p>
-                    Loading products...
-                </p>
+
+                <div className="products-loading">
+
+                    <div className="products-spinner" />
+
+                    <p>
+                        Loading drinks...
+                    </p>
+
+                </div>
             )}
 
-            {/* =========================
+            {/* =================================
                 ERROR
-            ========================= */}
+            ================================= */}
 
-            {!loading && error && (
-                <p>
-                    {error}
-                </p>
-            )}
+            {!loading &&
+                error && (
 
-            {/* =========================
-                PRODUCTS
-            ========================= */}
+                    <div className="products-error">
+
+                        <h3>
+                            Something went wrong
+                        </h3>
+
+                        <p>
+                            {error}
+                        </p>
+
+                    </div>
+                )}
+
+            {/* =================================
+                PRODUCT GRID
+            ================================= */}
 
             {!loading &&
                 !error &&
                 products.length > 0 && (
 
-                    <div className="products">
+                    <div className="products-grid">
 
                         {products.map(
                             (product) => (
 
                                 <ProductCard
-                                    key={product.id}
-                                    product={product}
+                                    key={
+                                        product.id
+                                    }
+                                    product={
+                                        product
+                                    }
                                 />
 
                             )
                         )}
 
                     </div>
-
                 )}
 
-            {/* =========================
+            {/* =================================
                 EMPTY
-            ========================= */}
+            ================================= */}
 
             {!loading &&
                 !error &&
                 products.length === 0 && (
 
-                    <p>
-                        {keyword
-                            ? `No drinks found for "${keyword}".`
-                            : "No drinks available."}
-                    </p>
+                    <div className="products-empty">
 
+                        <div className="products-empty-icon">
+                            🥤
+                        </div>
+
+                        <h3>
+                            No drinks found
+                        </h3>
+
+                        <p>
+                            {keyword
+                                ? `No drinks found for "${keyword}".`
+                                : "Try changing your filters."}
+                        </p>
+
+                        <button
+                            onClick={
+                                resetFilters
+                            }
+                        >
+                            Clear Filters
+                        </button>
+
+                    </div>
                 )}
 
-            {/* =========================
+            {/* =================================
                 PAGINATION
-            ========================= */}
+            ================================= */}
 
             {!loading &&
                 !error &&
                 totalPages > 1 && (
 
-                    <div className="pagination">
+                    <div className="products-pagination">
 
                         <button
                             disabled={
-                                currentPage === 0
+                                currentPage ===
+                                0
                             }
                             onClick={() =>
                                 changePage(
-                                    currentPage - 1
+                                    currentPage -
+                                        1
                                 )
                             }
                         >
@@ -529,11 +658,13 @@ function Products() {
                         <button
                             disabled={
                                 currentPage >=
-                                totalPages - 1
+                                totalPages -
+                                    1
                             }
                             onClick={() =>
                                 changePage(
-                                    currentPage + 1
+                                    currentPage +
+                                        1
                                 )
                             }
                         >
@@ -541,7 +672,6 @@ function Products() {
                         </button>
 
                     </div>
-
                 )}
 
         </main>

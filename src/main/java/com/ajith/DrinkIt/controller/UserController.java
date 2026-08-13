@@ -13,13 +13,13 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import jakarta.validation.Valid;
+
 import com.ajith.drinkit.dto.UserRequest;
 import com.ajith.drinkit.dto.UserResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.UserService;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,9 +31,9 @@ public class UserController {
                 this.userService = userService;
         }
 
-        // =========================
+        // ========================================
         // PUBLIC
-        // =========================
+        // ========================================
 
         @PostMapping("/register")
         public ResponseEntity<UserResponse> registerUser(
@@ -44,9 +44,9 @@ public class UserController {
                                 HttpStatus.CREATED);
         }
 
-        // =========================
+        // ========================================
         // CURRENT USER
-        // =========================
+        // ========================================
 
         @GetMapping("/me")
         public ResponseEntity<UserResponse> getMyProfile(
@@ -75,9 +75,9 @@ public class UserController {
                                                 request));
         }
 
-        // =========================
-        // ADMIN ONLY
-        // =========================
+        // ========================================
+        // ADMIN ONLY - ALL USERS
+        // ========================================
 
         @GetMapping
         public ResponseEntity<List<UserResponse>> getAllUsers() {
@@ -85,6 +85,10 @@ public class UserController {
                 return ResponseEntity.ok(
                                 userService.getAllUsers());
         }
+
+        // ========================================
+        // ADMIN ONLY - USER BY ID
+        // ========================================
 
         @GetMapping("/{id}")
         public ResponseEntity<UserResponse> getUserById(
@@ -94,14 +98,24 @@ public class UserController {
                                 userService.getUserById(id));
         }
 
+        // ========================================
+        // ADMIN ONLY - UPDATE USER
+        // ========================================
+
         @PutMapping("/{id}")
         public ResponseEntity<UserResponse> updateUser(
                         @PathVariable Long id,
                         @Valid @RequestBody UserRequest request) {
 
                 return ResponseEntity.ok(
-                                userService.updateUser(id, request));
+                                userService.updateUser(
+                                                id,
+                                                request));
         }
+
+        // ========================================
+        // ADMIN ONLY - DELETE USER
+        // ========================================
 
         @DeleteMapping("/{id}")
         public ResponseEntity<String> deleteUser(

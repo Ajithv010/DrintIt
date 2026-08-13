@@ -104,28 +104,37 @@ function Checkout() {
       // STEP 2: CREATE ORDER
       // ------------------------------------
 
-     const orderResponse = await api.post(
-  `/orders?addressId=${addressId}`
-);
+      const orderResponse = await api.post(
+        `/orders?addressId=${addressId}`
+      );
 
       console.log(
         "Order created:",
         orderResponse.data
       );
 
+      const orderId =
+        orderResponse.data?.orderId;
+
+      if (!orderId) {
+        throw new Error(
+          "Order ID was not returned by the server."
+        );
+      }
+
       // ------------------------------------
-      // STEP 3: GO TO SUCCESS PAGE
+      // STEP 3: GO TO ORDER SUCCESS
       // ------------------------------------
 
       navigate("/order-success", {
         state: {
-          order: orderResponse.data,
+          orderId,
         },
       });
 
     } catch (err) {
       console.error(
-        "Order placement error:",
+        "Place order error:",
         err
       );
 
@@ -134,7 +143,9 @@ function Checkout() {
 
       if (validationErrors) {
         setError(
-          Object.values(validationErrors).join(" ")
+          Object.values(
+            validationErrors
+          ).join(" ")
         );
       } else {
         setError(
@@ -143,7 +154,7 @@ function Checkout() {
             "Unable to place order."
         );
       }
-    } finally {
+
       setPlacingOrder(false);
     }
   };
@@ -182,6 +193,7 @@ function Checkout() {
           <h2>{error}</h2>
 
           <button
+            type="button"
             className="shop-btn"
             onClick={() => navigate("/cart")}
           >
@@ -202,7 +214,8 @@ function Checkout() {
 
   const subtotal = items.reduce(
     (total, item) =>
-      total + item.price * item.quantity,
+      total +
+      item.price * item.quantity,
     0
   );
 
@@ -215,6 +228,7 @@ function Checkout() {
       <main className="checkout-page">
 
         <button
+          type="button"
           className="back-btn"
           onClick={() => navigate("/")}
         >
@@ -224,13 +238,17 @@ function Checkout() {
 
         <div className="empty-cart">
 
-          <h2>Your cart is empty</h2>
+          <h2>
+            Your cart is empty
+          </h2>
 
           <p>
-            Add some drinks before checking out.
+            Add some drinks before
+            checking out.
           </p>
 
           <button
+            type="button"
             className="shop-btn"
             onClick={() => navigate("/")}
           >
@@ -253,6 +271,7 @@ function Checkout() {
       {/* BACK */}
 
       <button
+        type="button"
         className="back-btn"
         onClick={() => navigate("/cart")}
       >
@@ -276,9 +295,9 @@ function Checkout() {
 
       <div className="checkout-layout">
 
-        {/* ====================================
+        {/* ========================================
             DELIVERY DETAILS
-        ==================================== */}
+        ======================================== */}
 
         <section className="checkout-form-card">
 
@@ -432,9 +451,9 @@ function Checkout() {
 
         </section>
 
-        {/* ====================================
+        {/* ========================================
             ORDER SUMMARY
-        ==================================== */}
+        ======================================== */}
 
         <aside className="checkout-summary">
 
@@ -477,7 +496,8 @@ function Checkout() {
                 </div>
 
                 <strong>
-                  ₹{item.price * item.quantity}
+                  ₹
+                  {item.price * item.quantity}
                 </strong>
 
               </div>
@@ -522,6 +542,20 @@ function Checkout() {
 
             <strong>
               ₹{subtotal}
+            </strong>
+
+          </div>
+
+          {/* PAYMENT METHOD */}
+
+          <div className="checkout-payment-method">
+
+            <span>
+              Payment Method
+            </span>
+
+            <strong>
+              Cash on Delivery
             </strong>
 
           </div>

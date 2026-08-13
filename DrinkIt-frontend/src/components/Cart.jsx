@@ -3,7 +3,6 @@ import {
   FiMinus,
   FiPlus,
   FiTrash2,
-  FiArrowLeft,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -53,17 +52,24 @@ function Cart() {
 
       setCart(response.data);
 
-      // Update navbar count
       syncCartCount(response.data);
 
     } catch (err) {
-      console.error("Error loading cart:", err);
+      console.error(
+        "Error loading cart:",
+        err
+      );
 
       if (err.response?.status === 401) {
-        setError("Please login to view your cart.");
+        setError(
+          "Please login to view your cart."
+        );
       } else {
-        setError("Unable to load cart.");
+        setError(
+          "Unable to load cart."
+        );
       }
+
     } finally {
       setLoading(false);
     }
@@ -95,7 +101,6 @@ function Cart() {
 
       setCart(response.data);
 
-      // Update navbar count
       syncCartCount(response.data);
 
     } catch (err) {
@@ -104,7 +109,9 @@ function Cart() {
         err
       );
 
-      alert("Unable to update quantity.");
+      alert(
+        "Unable to update quantity."
+      );
     }
   };
 
@@ -112,16 +119,13 @@ function Cart() {
   // REMOVE ITEM
   // ========================================
 
-  const removeItem = async (productId) => {
+  const removeItem = async (
+    productId
+  ) => {
     try {
-      const response = await api.delete(
+      await api.delete(
         `/cart/items/${productId}`
       );
-
-      /*
-       * DELETE normally returns 204,
-       * so reload the cart from backend.
-       */
 
       await loadCart();
 
@@ -131,7 +135,9 @@ function Cart() {
         err
       );
 
-      alert("Unable to remove item.");
+      alert(
+        "Unable to remove item."
+      );
     }
   };
 
@@ -151,7 +157,9 @@ function Cart() {
         err
       );
 
-      alert("Unable to clear cart.");
+      alert(
+        "Unable to clear cart."
+      );
     }
   };
 
@@ -162,9 +170,11 @@ function Cart() {
   if (loading) {
     return (
       <main className="cart-page">
+
         <div className="product-page-message">
           Loading cart...
         </div>
+
       </main>
     );
   }
@@ -177,20 +187,17 @@ function Cart() {
     return (
       <main className="cart-page">
 
-        <button
-          className="back-btn"
-          onClick={() => navigate("/")}
-        >
-          <FiArrowLeft />
-          Continue Shopping
-        </button>
-
         <div className="empty-cart">
 
-          <h2>{error}</h2>
+          <h2>
+            {error}
+          </h2>
 
           <button
-            onClick={() => navigate("/")}
+            type="button"
+            onClick={() =>
+              navigate("/home")
+            }
             className="shop-btn"
           >
             Continue Shopping
@@ -229,14 +236,6 @@ function Cart() {
     return (
       <main className="cart-page">
 
-        <button
-          className="back-btn"
-          onClick={() => navigate("/")}
-        >
-          <FiArrowLeft />
-          Continue Shopping
-        </button>
-
         <div className="cart-header">
 
           <div>
@@ -245,11 +244,15 @@ function Cart() {
               YOUR ORDER
             </p>
 
-            <h1>Your Cart</h1>
+            <h1>
+              Your Cart
+            </h1>
 
           </div>
 
-          <span>0 items</span>
+          <span>
+            0 items
+          </span>
 
         </div>
 
@@ -265,7 +268,10 @@ function Cart() {
           </p>
 
           <button
-            onClick={() => navigate("/")}
+            type="button"
+            onClick={() =>
+              navigate("/home")
+            }
             className="shop-btn"
           >
             Start Shopping
@@ -283,16 +289,6 @@ function Cart() {
 
   return (
     <main className="cart-page">
-
-      {/* BACK */}
-
-      <button
-        className="back-btn"
-        onClick={() => navigate("/")}
-      >
-        <FiArrowLeft />
-        Continue Shopping
-      </button>
 
       {/* HEADER */}
 
@@ -370,6 +366,7 @@ function Cart() {
                 <div className="quantity-selector">
 
                   <button
+                    type="button"
                     onClick={() =>
                       updateQuantity(
                         item.productId,
@@ -388,6 +385,7 @@ function Cart() {
                   </span>
 
                   <button
+                    type="button"
                     onClick={() =>
                       updateQuantity(
                         item.productId,
@@ -401,6 +399,7 @@ function Cart() {
                 </div>
 
                 <button
+                  type="button"
                   className="remove-btn"
                   onClick={() =>
                     removeItem(
@@ -429,6 +428,7 @@ function Cart() {
           {/* CLEAR CART */}
 
           <button
+            type="button"
             className="remove-btn"
             onClick={clearCart}
           >
@@ -485,6 +485,7 @@ function Cart() {
           </div>
 
           <button
+            type="button"
             className="checkout-btn"
             onClick={() =>
               navigate("/checkout")

@@ -13,6 +13,7 @@ import com.ajith.drinkit.entity.CartItem;
 import com.ajith.drinkit.entity.Order;
 import com.ajith.drinkit.entity.OrderItem;
 import com.ajith.drinkit.entity.OrderStatus;
+
 import com.ajith.drinkit.entity.Product;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.exception.AccessDeniedException;
@@ -51,9 +52,9 @@ public class OrderServiceImpl implements OrderService {
                 this.addressRepository = addressRepository;
         }
 
-        // =========================
-        // PLACE ORDER / CHECKOUT
-        // =========================
+        // ========================================
+        // PLACE ORDER
+        // ========================================
 
         @Override
         @Transactional
@@ -64,7 +65,6 @@ public class OrderServiceImpl implements OrderService {
                 User user = getUser(email);
 
                 if (addressId == null || addressId <= 0) {
-
                         throw new InvalidCartOperationException(
                                         "Address ID is required");
                 }
@@ -80,7 +80,6 @@ public class OrderServiceImpl implements OrderService {
                                                 "Cart not found"));
 
                 if (cart.getItems().isEmpty()) {
-
                         throw new InvalidCartOperationException(
                                         "Cart is empty");
                 }
@@ -99,14 +98,11 @@ public class OrderServiceImpl implements OrderService {
                         Product product = cartItem.getProduct();
 
                         if (product == null) {
-
                                 throw new InvalidCartOperationException(
                                                 "Cart contains an invalid product");
                         }
 
-                        if (!Boolean.TRUE.equals(
-                                        product.getActive())) {
-
+                        if (!Boolean.TRUE.equals(product.getActive())) {
                                 throw new InvalidCartOperationException(
                                                 "Product is inactive: "
                                                                 + product.getName());
@@ -129,7 +125,6 @@ public class OrderServiceImpl implements OrderService {
                         }
 
                         if (cartItem.getQuantity() > product.getStock()) {
-
                                 throw new InsufficientStockException(
                                                 "Insufficient stock for product: "
                                                                 + product.getName());
@@ -150,7 +145,6 @@ public class OrderServiceImpl implements OrderService {
                         orderItem.setQuantity(
                                         cartItem.getQuantity());
 
-                        // Save price at the time of purchase
                         orderItem.setPrice(
                                         product.getPrice());
 
@@ -163,7 +157,6 @@ public class OrderServiceImpl implements OrderService {
 
                         total += subtotal;
 
-                        // Reserve/deduct stock
                         product.setStock(
                                         product.getStock()
                                                         - cartItem.getQuantity());
@@ -175,8 +168,6 @@ public class OrderServiceImpl implements OrderService {
 
                 Order savedOrder = orderRepository.save(order);
 
-                // Clear cart only after order has been
-                // successfully created.
                 cart.getItems().clear();
 
                 cartRepository.save(cart);
@@ -184,9 +175,9 @@ public class OrderServiceImpl implements OrderService {
                 return OrderMapper.toResponse(savedOrder);
         }
 
-        // =========================
-        // GET MY ORDERS
-        // =========================
+        // ========================================
+        // CUSTOMER - GET MY ORDERS
+        // ========================================
 
         @Override
         @Transactional(readOnly = true)
@@ -202,9 +193,9 @@ public class OrderServiceImpl implements OrderService {
                                 .toList();
         }
 
-        // =========================
-        // GET MY ORDER BY ID
-        // =========================
+        // ========================================
+        // CUSTOMER - GET MY ORDER BY ID
+        // ========================================
 
         @Override
         @Transactional(readOnly = true)
@@ -221,9 +212,9 @@ public class OrderServiceImpl implements OrderService {
                 return OrderMapper.toResponse(order);
         }
 
-        // =========================
-        // CANCEL MY ORDER
-        // =========================
+        // ========================================
+        // CUSTOMER - CANCEL ORDER
+        // ========================================
 
         @Override
         @Transactional
@@ -237,32 +228,24 @@ public class OrderServiceImpl implements OrderService {
 
                 checkOwnership(order, user);
 
-                /*
-                 * Customer can cancel only PENDING orders.
-                 *
-                 * Once payment succeeds, the order becomes
-                 * CONFIRMED. We do not have a refund system yet,
-                 * so allowing cancellation after payment would
-                 * create inconsistent business logic.
-                 */
                 if (order.getStatus() != OrderStatus.PENDING) {
-
                         throw new InvalidOrderStatusException(
                                         "Only pending orders can be cancelled");
                 }
 
                 restoreStock(order);
 
-                order.setStatus(OrderStatus.CANCELLED);
+                order.setStatus(
+                                OrderStatus.CANCELLED);
 
                 Order savedOrder = orderRepository.save(order);
 
                 return OrderMapper.toResponse(savedOrder);
         }
 
-        // =========================
-        // GET ALL ORDERS - ADMIN
-        // =========================
+        // ========================================
+        // ADMIN - GET ALL ORDERS
+        // ========================================
 
         @Override
         @Transactional(readOnly = true)
@@ -275,9 +258,23 @@ public class OrderServiceImpl implements OrderService {
                                 .toList();
         }
 
-        // =========================
-        // UPDATE ORDER STATUS - ADMIN
-        // =========================
+        // ========================================
+        // ADMIN - GET ORDER BY ID
+        // ========================================
+
+        @Override
+        @Transactional(readOnly = true)
+        public OrderResponse getAdminOrderById(
+                        Long orderId) {
+
+                Order order = getOrder(orderId);
+
+                return OrderMapper.toResponse(order);
+        }
+
+        // ========================================
+        // ADMIN - UPDATE ORDER STATUS
+        // ========================================
 
         @Override
         @Transactional
@@ -310,27 +307,23 @@ public class OrderServiceImpl implements OrderService {
                 OrderStatus currentStatus = order.getStatus();
 
                 if (currentStatus == OrderStatus.DELIVERED) {
-
                         throw new InvalidOrderStatusException(
                                         "Delivered order cannot be changed");
                 }
 
                 if (currentStatus == OrderStatus.CANCELLED) {
-
                         throw new InvalidOrderStatusException(
                                         "Cancelled order cannot be changed");
                 }
 
-                // Same status
                 if (currentStatus == newStatus) {
-
                         throw new InvalidOrderStatusException(
                                         "Order already has this status");
                 }
 
-                // =========================
+                // ========================================
                 // PENDING
-                // =========================
+                // ========================================
 
                 if (currentStatus == OrderStatus.PENDING) {
 
@@ -353,9 +346,9 @@ public class OrderServiceImpl implements OrderService {
                         }
                 }
 
-                // =========================
+                // ========================================
                 // CONFIRMED
-                // =========================
+                // ========================================
 
                 else if (currentStatus == OrderStatus.CONFIRMED) {
 
@@ -376,9 +369,9 @@ public class OrderServiceImpl implements OrderService {
                 return OrderMapper.toResponse(savedOrder);
         }
 
-        // =========================
+        // ========================================
         // GET USER
-        // =========================
+        // ========================================
 
         private User getUser(String email) {
 
@@ -388,9 +381,9 @@ public class OrderServiceImpl implements OrderService {
                                                 "User not found"));
         }
 
-        // =========================
+        // ========================================
         // GET ORDER
-        // =========================
+        // ========================================
 
         private Order getOrder(Long orderId) {
 
@@ -406,9 +399,9 @@ public class OrderServiceImpl implements OrderService {
                                                 "Order not found"));
         }
 
-        // =========================
+        // ========================================
         // OWNERSHIP
-        // =========================
+        // ========================================
 
         private void checkOwnership(
                         Order order,
@@ -424,9 +417,9 @@ public class OrderServiceImpl implements OrderService {
                 }
         }
 
-        // =========================
+        // ========================================
         // RESTORE STOCK
-        // =========================
+        // ========================================
 
         private void restoreStock(Order order) {
 

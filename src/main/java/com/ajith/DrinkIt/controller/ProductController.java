@@ -1,9 +1,13 @@
 package com.ajith.drinkit.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ajith.drinkit.dto.ProductPageResponse;
 import com.ajith.drinkit.dto.ProductRequest;
@@ -23,25 +27,50 @@ public class ProductController {
                 this.productService = productService;
         }
 
-        // =========================
+        // ========================================
         // CREATE PRODUCT
         // ADMIN ONLY
-        // =========================
+        // ========================================
 
-        @PostMapping
+        @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
         public ResponseEntity<ProductResponse> createProduct(
-                        @Valid @RequestBody ProductRequest request) {
+
+                        @Valid @RequestPart("product") ProductRequest request,
+
+                        @RequestPart(value = "image", required = false) MultipartFile image) {
+
+                // Upload image if selected
+                if (image != null && !image.isEmpty()) {
+
+                        String fileName = productService.uploadProductImage(image);
+
+                        request.setImageUrl(fileName);
+                }
 
                 return new ResponseEntity<>(
                                 productService.createProduct(request),
                                 HttpStatus.CREATED);
         }
 
-        // =========================
+        // ========================================
+        // UPLOAD PRODUCT IMAGE
+        // ========================================
+
+        @PostMapping("/upload-image")
+        public ResponseEntity<Map<String, String>> uploadImage(
+                        @RequestParam("image") MultipartFile image) {
+
+                String fileName = productService.uploadProductImage(image);
+
+                return ResponseEntity.ok(
+                                Map.of(
+                                                "fileName", fileName,
+                                                "message", "Image uploaded successfully"));
+        }
+
+        // ========================================
         // GET PRODUCTS
-        // PUBLIC
-        // SEARCH / FILTER / SORT / PAGINATION
-        // =========================
+        // ========================================
 
         @GetMapping
         public ResponseEntity<?> getProducts(
@@ -68,14 +97,9 @@ public class ProductController {
 
                         @RequestParam(defaultValue = "10") int size) {
 
-                /*
-                 * PUBLIC USER
-                 *
-                 * No authentication means the visitor is
-                 * browsing the store without logging in.
-                 *
-                 * Public users can only see active products.
-                 */
+                // ========================================
+                // PUBLIC USER
+                // ========================================
 
                 if (authentication == null) {
 
@@ -103,29 +127,19 @@ public class ProductController {
                         return ResponseEntity.ok(response);
                 }
 
-                // =========================
+                // ========================================
                 // AUTHENTICATED USER
-                // =========================
+                // ========================================
 
                 User user = (User) authentication.getPrincipal();
 
                 String role = user.getRole().getRoleName();
 
-                // =========================
+                // ========================================
                 // CUSTOMER
-                // =========================
+                // ========================================
 
                 if ("CUSTOMER".equalsIgnoreCase(role)) {
-
-                        /*
-                         * Customers can only see active products.
-                         *
-                         * Even if the customer sends:
-                         *
-                         * active=false
-                         *
-                         * we force it to true.
-                         */
 
                         active = true;
 
@@ -151,15 +165,11 @@ public class ProductController {
                         return ResponseEntity.ok(response);
                 }
 
-                // =========================
+                // ========================================
                 // ADMIN
-                // =========================
+                // ========================================
 
                 if ("ADMIN".equalsIgnoreCase(role)) {
-
-                        /*
-                         * Admin can see both active and inactive products.
-                         */
 
                         if (keyword == null
                                         && categoryId == null
@@ -198,18 +208,14 @@ public class ProductController {
                         return ResponseEntity.ok(response);
                 }
 
-                // =========================
-                // UNKNOWN ROLE
-                // =========================
-
-                return ResponseEntity.status(
-                                HttpStatus.FORBIDDEN).build();
+                return ResponseEntity
+                                .status(HttpStatus.FORBIDDEN)
+                                .build();
         }
 
-        // =========================
+        // ========================================
         // GET PRODUCT BY ID
-        // PUBLIC
-        // =========================
+        // ========================================
 
         @GetMapping("/{id}")
         public ResponseEntity<ProductResponse> getProductById(
@@ -218,44 +224,38 @@ public class ProductController {
 
                 ProductResponse product = productService.getProductById(id);
 
-                /*
-                 * Public users can only see active products.
-                 */
-
                 if (authentication == null) {
 
-                        if (!Boolean.TRUE.equals(product.getActive())) {
-                                return ResponseEntity.notFound().build();
+                        if (!Boolean.TRUE.equals(
+                                        product.getActive())) {
+
+                                return ResponseEntity
+                                                .notFound()
+                                                .build();
                         }
 
                         return ResponseEntity.ok(product);
                 }
 
-                // =========================
-                // AUTHENTICATED USER
-                // =========================
-
                 User user = (User) authentication.getPrincipal();
 
                 String role = user.getRole().getRoleName();
 
-                /*
-                 * Customers cannot access inactive products.
-                 */
-
                 if ("CUSTOMER".equalsIgnoreCase(role)
-                                && !Boolean.TRUE.equals(product.getActive())) {
+                                && !Boolean.TRUE.equals(
+                                                product.getActive())) {
 
-                        return ResponseEntity.notFound().build();
+                        return ResponseEntity
+                                        .notFound()
+                                        .build();
                 }
 
                 return ResponseEntity.ok(product);
         }
 
-        // =========================
+        // ========================================
         // UPDATE PRODUCT
-        // ADMIN ONLY
-        // =========================
+        // ========================================
 
         @PutMapping("/{id}")
         public ResponseEntity<ProductResponse> updateProduct(
@@ -268,10 +268,9 @@ public class ProductController {
                                                 request));
         }
 
-        // =========================
+        // ========================================
         // DELETE PRODUCT
-        // ADMIN ONLY
-        // =========================
+        // ========================================
 
         @DeleteMapping("/{id}")
         public ResponseEntity<Void> deleteProduct(
@@ -279,6 +278,8 @@ public class ProductController {
 
                 productService.deleteProduct(id);
 
-                return ResponseEntity.noContent().build();
+                return ResponseEntity
+                                .noContent()
+                                .build();
         }
 }

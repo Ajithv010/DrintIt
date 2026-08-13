@@ -5,7 +5,7 @@ import {
     Route,
     useNavigate,
 } from "react-router-dom";
-
+import Addresses from "./components/Addresses";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Navbar from "./components/Navbar";
@@ -22,9 +22,16 @@ import OrderSuccess from "./components/OrderSuccess";
 import AdminOrders from "./components/AdminOrders";
 import { getProducts } from "./services/productService";
 import AdminLogin from "./components/AdminLogin";
-// ========================================
+import AdminRoute from "./components/AdminRoute";
 import RoleSelection from "./components/RoleSelection";
 import AdminDashboard from "./components/AdminDashboard";
+import AdminProducts from "./components/AdminProducts";
+import AdminUsers from "./components/AdminUsers";
+import AdminCategories from "./components/AdminCategories";
+import AdminOrderDetails from "./components/AdminOrderDetails";
+
+
+
 
 // HOME PAGE
 // ========================================
@@ -168,6 +175,7 @@ function Home() {
                     </p>
 
                     <button
+                        type="button"
                         className="hero-btn"
                         onClick={() =>
                             navigate("/products")
@@ -240,6 +248,7 @@ function Home() {
                     </div>
 
                     <button
+                        type="button"
                         className="view-all"
                         onClick={() =>
                             navigate("/products")
@@ -390,6 +399,10 @@ function App() {
                     path="/account"
                     element={<Profile />}
                 />
+                <Route
+    path="/addresses"
+    element={<Addresses />}
+/>
 
                 {/* ORDERS */}
 
@@ -404,22 +417,50 @@ function App() {
                     path="/orders/:id"
                     element={<OrderDetails />}
                 />
-                <Route
+  <Route
   path="/admin/login"
   element={<AdminLogin />}
 />
-                <Route
-  path="/admin/orders"
-  element={<AdminOrders />}
-/>
+
 <Route
   path="/start"
   element={<RoleSelection />}
 />
-<Route
-  path="/admin"
-  element={<AdminDashboard />}
-/>
+
+<Route element={<AdminRoute />}>
+
+  <Route
+    path="/admin"
+    element={<AdminDashboard />}
+  />
+
+  <Route
+    path="/admin/orders"
+    element={<AdminOrders />}
+  />
+
+  <Route
+    path="/admin/orders/:orderId"
+    element={<AdminOrderDetails />}
+  />
+
+  <Route
+    path="/admin/products"
+    element={<AdminProducts />}
+  />
+
+  <Route
+    path="/admin/categories"
+    element={<AdminCategories />}
+  />
+
+  <Route
+    path="/admin/users"
+    element={<AdminUsers />}
+  />
+  
+
+</Route>
 
             </Routes>
 

@@ -5,13 +5,18 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.ajith.drinkit.dto.OrderResponse;
 import com.ajith.drinkit.entity.User;
 import com.ajith.drinkit.service.OrderService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -23,9 +28,9 @@ public class OrderController {
                 this.orderService = orderService;
         }
 
-        // =========================
-        // PLACE ORDER
-        // =========================
+        // ========================================
+        // CUSTOMER - PLACE ORDER
+        // ========================================
 
         @PostMapping
         public ResponseEntity<OrderResponse> placeOrder(
@@ -43,9 +48,48 @@ public class OrderController {
                                 HttpStatus.CREATED);
         }
 
-        // =========================
-        // GET MY ORDERS
-        // =========================
+        // ========================================
+        // ADMIN - GET ALL ORDERS
+        // ========================================
+
+        @GetMapping("/admin/all")
+        public ResponseEntity<List<OrderResponse>> getAllOrders() {
+
+                return ResponseEntity.ok(
+                                orderService.getAllOrders());
+        }
+
+        // ========================================
+        // ADMIN - GET ORDER DETAILS
+        // ========================================
+
+        @GetMapping("/admin/{orderId}")
+        public ResponseEntity<OrderResponse> getAdminOrderById(
+                        @PathVariable Long orderId) {
+
+                return ResponseEntity.ok(
+                                orderService.getAdminOrderById(
+                                                orderId));
+        }
+
+        // ========================================
+        // ADMIN - UPDATE ORDER STATUS
+        // ========================================
+
+        @PutMapping("/{orderId}/status")
+        public ResponseEntity<OrderResponse> updateOrderStatus(
+                        @PathVariable Long orderId,
+                        @RequestParam String status) {
+
+                return ResponseEntity.ok(
+                                orderService.updateOrderStatus(
+                                                orderId,
+                                                status));
+        }
+
+        // ========================================
+        // CUSTOMER - GET MY ORDERS
+        // ========================================
 
         @GetMapping
         public ResponseEntity<List<OrderResponse>> getMyOrders(
@@ -58,9 +102,9 @@ public class OrderController {
                                                 user.getEmail()));
         }
 
-        // =========================
-        // GET MY ORDER BY ID
-        // =========================
+        // ========================================
+        // CUSTOMER - GET MY ORDER BY ID
+        // ========================================
 
         @GetMapping("/{orderId}")
         public ResponseEntity<OrderResponse> getOrderById(
@@ -75,9 +119,9 @@ public class OrderController {
                                                 orderId));
         }
 
-        // =========================
-        // CANCEL MY ORDER
-        // =========================
+        // ========================================
+        // CUSTOMER - CANCEL ORDER
+        // ========================================
 
         @DeleteMapping("/{orderId}")
         public ResponseEntity<OrderResponse> cancelOrder(
@@ -91,32 +135,21 @@ public class OrderController {
                                                 user.getEmail(),
                                                 orderId));
         }
-        // =========================
-        // ADMIN - UPDATE ORDER STATUS
-        // =========================
 
-        @PutMapping("/{orderId}/status")
-        public ResponseEntity<OrderResponse> updateOrderStatus(
-                        @PathVariable Long orderId,
-                        @RequestParam String status) {
-
-                return ResponseEntity.ok(
-                                orderService.updateOrderStatus(
-                                                orderId,
-                                                status));
-        }
+        // ========================================
+        // CUSTOMER - CANCEL ORDER
+        // ========================================
 
         @PutMapping("/{orderId}/cancel")
-        public ResponseEntity<OrderResponse> cancelOrder(
-                        @PathVariable Long orderId,
-                        Authentication authentication) {
+        public ResponseEntity<OrderResponse> cancelOrderWithPut(
+                        Authentication authentication,
+                        @PathVariable Long orderId) {
 
                 User user = (User) authentication.getPrincipal();
 
-                OrderResponse response = orderService.cancelOrder(
-                                user.getEmail(),
-                                orderId);
-
-                return ResponseEntity.ok(response);
+                return ResponseEntity.ok(
+                                orderService.cancelOrder(
+                                                user.getEmail(),
+                                                orderId));
         }
 }

@@ -1,13 +1,21 @@
 package com.ajith.drinkit.service.impl;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ajith.drinkit.dto.ProductMapper;
 import com.ajith.drinkit.dto.ProductRequest;
@@ -25,6 +33,20 @@ public class ProductServiceImpl implements ProductService {
         private final ProductRepository productRepository;
         private final CategoryRepository categoryRepository;
 
+        /*
+         * Images are stored inside:
+         *
+         * DrinkIt/
+         * DrinkIt-frontend/
+         * public/
+         * images/
+         *
+         * This allows the existing React image paths
+         * /images/product.jpg to continue working.
+         */
+        @Value("${drinkit.upload-dir:DrinkIt-frontend/public/images}")
+        private String uploadDirectory;
+
         public ProductServiceImpl(
                         ProductRepository productRepository,
                         CategoryRepository categoryRepository) {
@@ -33,9 +55,9 @@ public class ProductServiceImpl implements ProductService {
                 this.categoryRepository = categoryRepository;
         }
 
-        // =========================
+        // ========================================
         // CREATE PRODUCT
-        // =========================
+        // ========================================
 
         @Override
         public ProductResponse createProduct(
@@ -85,9 +107,9 @@ public class ProductServiceImpl implements ProductService {
                 return ProductMapper.toResponse(saved);
         }
 
-        // =========================
+        // ========================================
         // GET ALL PRODUCTS
-        // =========================
+        // ========================================
 
         @Override
         public List<ProductResponse> getAllProducts() {
@@ -98,9 +120,9 @@ public class ProductServiceImpl implements ProductService {
                                 .toList();
         }
 
-        // =========================
+        // ========================================
         // SEARCH / FILTER
-        // =========================
+        // ========================================
 
         @Override
         public Page<ProductResponse> searchProducts(
@@ -116,25 +138,21 @@ public class ProductServiceImpl implements ProductService {
                         int size) {
 
                 if (page < 0) {
-
                         throw new IllegalArgumentException(
                                         "Page must be greater than or equal to 0");
                 }
 
                 if (size <= 0 || size > 100) {
-
                         throw new IllegalArgumentException(
                                         "Size must be between 1 and 100");
                 }
 
                 if (minPrice != null && minPrice < 0) {
-
                         throw new IllegalArgumentException(
                                         "Minimum price cannot be negative");
                 }
 
                 if (maxPrice != null && maxPrice < 0) {
-
                         throw new IllegalArgumentException(
                                         "Maximum price cannot be negative");
                 }
@@ -199,9 +217,9 @@ public class ProductServiceImpl implements ProductService {
 
                 Specification<Product> specification = (root, query, criteriaBuilder) -> null;
 
-                // =========================
+                // ========================================
                 // KEYWORD
-                // =========================
+                // ========================================
 
                 if (keyword != null &&
                                 !keyword.trim().isEmpty()) {
@@ -211,93 +229,107 @@ public class ProductServiceImpl implements ProductService {
                                         "%";
 
                         specification = specification.and(
-                                        (root, query, criteriaBuilder) -> criteriaBuilder.or(
+                                        (root,
+                                                        query,
+                                                        criteriaBuilder) -> criteriaBuilder.or(
 
-                                                        criteriaBuilder.like(
-                                                                        criteriaBuilder.lower(
-                                                                                        root.get("name")),
-                                                                        searchKeyword),
+                                                                        criteriaBuilder.like(
+                                                                                        criteriaBuilder.lower(
+                                                                                                        root.get("name")),
+                                                                                        searchKeyword),
 
-                                                        criteriaBuilder.like(
-                                                                        criteriaBuilder.lower(
-                                                                                        root.get("description")),
-                                                                        searchKeyword),
+                                                                        criteriaBuilder.like(
+                                                                                        criteriaBuilder.lower(
+                                                                                                        root.get("description")),
+                                                                                        searchKeyword),
 
-                                                        criteriaBuilder.like(
-                                                                        criteriaBuilder.lower(
-                                                                                        root.get("brand")),
-                                                                        searchKeyword)));
+                                                                        criteriaBuilder.like(
+                                                                                        criteriaBuilder.lower(
+                                                                                                        root.get("brand")),
+                                                                                        searchKeyword)));
                 }
 
-                // =========================
+                // ========================================
                 // CATEGORY
-                // =========================
+                // ========================================
 
                 if (categoryId != null) {
 
                         specification = specification.and(
-                                        (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                                                        root.get("category")
-                                                                        .get("id"),
-                                                        categoryId));
+                                        (root,
+                                                        query,
+                                                        criteriaBuilder) -> criteriaBuilder.equal(
+                                                                        root.get("category")
+                                                                                        .get("id"),
+                                                                        categoryId));
                 }
 
-                // =========================
+                // ========================================
                 // MIN PRICE
-                // =========================
+                // ========================================
 
                 if (minPrice != null) {
 
                         specification = specification.and(
-                                        (root, query, criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
-                                                        root.get("price"),
-                                                        minPrice));
+                                        (root,
+                                                        query,
+                                                        criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
+                                                                        root.get("price"),
+                                                                        minPrice));
                 }
 
-                // =========================
+                // ========================================
                 // MAX PRICE
-                // =========================
+                // ========================================
 
                 if (maxPrice != null) {
 
                         specification = specification.and(
-                                        (root, query, criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
-                                                        root.get("price"),
-                                                        maxPrice));
+                                        (root,
+                                                        query,
+                                                        criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
+                                                                        root.get("price"),
+                                                                        maxPrice));
                 }
 
-                // =========================
+                // ========================================
                 // STOCK
-                // =========================
+                // ========================================
 
                 if (inStock != null) {
 
                         if (inStock) {
 
                                 specification = specification.and(
-                                                (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(
-                                                                root.get("stock"),
-                                                                0));
+                                                (root,
+                                                                query,
+                                                                criteriaBuilder) -> criteriaBuilder.greaterThan(
+                                                                                root.get("stock"),
+                                                                                0));
 
                         } else {
 
                                 specification = specification.and(
-                                                (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                                                                root.get("stock"),
-                                                                0));
+                                                (root,
+                                                                query,
+                                                                criteriaBuilder) -> criteriaBuilder.equal(
+                                                                                root.get("stock"),
+                                                                                0));
                         }
                 }
 
-                // =========================
+                // ========================================
                 // ACTIVE
-                // =========================
+                // ========================================
 
                 if (active != null) {
 
                         specification = specification.and(
-                                        (root, query, criteriaBuilder) -> criteriaBuilder.equal(
-                                                        root.get("active"),
-                                                        active));
+                                        (root,
+                                                        query,
+                                                        criteriaBuilder) -> criteriaBuilder.equal(
+                                                                        root.get("active"),
+                                                                        active));
                 }
 
                 return productRepository
@@ -307,9 +339,9 @@ public class ProductServiceImpl implements ProductService {
                                 .map(ProductMapper::toResponse);
         }
 
-        // =========================
+        // ========================================
         // GET PRODUCT BY ID
-        // =========================
+        // ========================================
 
         @Override
         public ProductResponse getProductById(
@@ -323,9 +355,9 @@ public class ProductServiceImpl implements ProductService {
                 return ProductMapper.toResponse(product);
         }
 
-        // =========================
+        // ========================================
         // UPDATE PRODUCT
-        // =========================
+        // ========================================
 
         @Override
         public ProductResponse updateProduct(
@@ -340,12 +372,14 @@ public class ProductServiceImpl implements ProductService {
                                                 "Product not found"));
 
                 Category category = categoryRepository
-                                .findById(request.getCategoryId())
+                                .findById(
+                                                request.getCategoryId())
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Category not found"));
 
                 if (!product.getName()
-                                .equalsIgnoreCase(request.getName().trim())
+                                .equalsIgnoreCase(
+                                                request.getName().trim())
                                 &&
                                 productRepository.existsByName(
                                                 request.getName().trim())) {
@@ -383,9 +417,9 @@ public class ProductServiceImpl implements ProductService {
                                 updatedProduct);
         }
 
-        // =========================
+        // ========================================
         // DELETE PRODUCT
-        // =========================
+        // ========================================
 
         @Override
         public void deleteProduct(
@@ -399,17 +433,115 @@ public class ProductServiceImpl implements ProductService {
                 /*
                  * Soft delete.
                  *
-                 * We don't physically delete the product because
-                 * existing orders may still reference it.
+                 * Existing orders may reference this product.
                  */
                 product.setActive(false);
 
                 productRepository.save(product);
         }
 
-        // =========================
-        // VALIDATE PRODUCT REQUEST
-        // =========================
+        // ========================================
+        // UPLOAD PRODUCT IMAGE
+        // ========================================
+
+        @Override
+        public String uploadProductImage(
+                        MultipartFile image) {
+
+                if (image == null ||
+                                image.isEmpty()) {
+
+                        throw new IllegalArgumentException(
+                                        "Please select an image");
+                }
+
+                // ========================================
+                // FILE SIZE
+                // ========================================
+
+                if (image.getSize() > 5 * 1024 * 1024) {
+
+                        throw new IllegalArgumentException(
+                                        "Image size must be less than 5 MB");
+                }
+
+                // ========================================
+                // FILE TYPE
+                // ========================================
+
+                String contentType = image.getContentType();
+
+                if (contentType == null ||
+                                !(contentType.equalsIgnoreCase(
+                                                "image/jpeg")
+                                                ||
+                                                contentType.equalsIgnoreCase(
+                                                                "image/png")
+                                                ||
+                                                contentType.equalsIgnoreCase(
+                                                                "image/webp"))) {
+
+                        throw new IllegalArgumentException(
+                                        "Only JPG, PNG and WEBP images are allowed");
+                }
+
+                // ========================================
+                // EXTENSION
+                // ========================================
+
+                String originalName = image.getOriginalFilename();
+
+                String extension = ".jpg";
+
+                if (originalName != null &&
+                                originalName.contains(".")) {
+
+                        extension = originalName.substring(
+                                        originalName.lastIndexOf("."))
+                                        .toLowerCase();
+                }
+
+                // ========================================
+                // UNIQUE FILE NAME
+                // ========================================
+
+                String fileName = UUID.randomUUID()
+                                .toString()
+                                + extension;
+
+                // ========================================
+                // CREATE DIRECTORY
+                // ========================================
+
+                Path directory = Paths.get(
+                                System.getProperty("user.dir"))
+                                .resolve(uploadDirectory)
+                                .normalize();
+
+                try {
+
+                        Files.createDirectories(directory);
+
+                        Path target = directory.resolve(fileName);
+
+                        Files.copy(
+                                        image.getInputStream(),
+                                        target,
+                                        StandardCopyOption.REPLACE_EXISTING);
+
+                        return fileName;
+
+                } catch (IOException e) {
+
+                        throw new RuntimeException(
+                                        "Unable to save product image",
+                                        e);
+                }
+        }
+
+        // ========================================
+        // VALIDATE PRODUCT
+        // ========================================
 
         private void validateProductRequest(
                         ProductRequest request) {

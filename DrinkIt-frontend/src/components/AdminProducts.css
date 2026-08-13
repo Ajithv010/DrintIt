@@ -1,0 +1,1133 @@
+/* ========================================
+   ADMIN PRODUCTS PAGE
+======================================== */
+
+.admin-products-page {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ========================================
+   BACK BUTTON
+======================================== */
+
+.admin-products-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  border: none;
+  background: transparent;
+
+  padding: 0;
+  margin-bottom: 32px;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.admin-products-back:hover {
+  opacity: 0.65;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+.admin-products-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.admin-products-label {
+  margin: 0 0 7px;
+
+  color: #111;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  letter-spacing: 1.8px;
+}
+
+.admin-products-header h1 {
+  margin: 0;
+
+  color: #111;
+
+  font-size: 38px;
+  line-height: 1.1;
+
+  letter-spacing: -1px;
+}
+
+.admin-products-header p {
+  margin: 10px 0 0;
+
+  color: #666;
+
+  font-size: 15px;
+}
+
+.admin-products-count {
+  color: #111;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+/* ========================================
+   ERROR
+======================================== */
+
+.admin-products-error {
+  margin-top: 24px;
+
+  padding: 15px 18px;
+
+  border: 1px solid #f5c2c2;
+  border-radius: 10px;
+
+  background: #fff1f1;
+  color: #b42318;
+
+  font-size: 14px;
+}
+
+/* ========================================
+   FORM CARD
+======================================== */
+
+.admin-product-form-card {
+  margin-top: 35px;
+
+  padding: 30px;
+
+  background: #fff;
+
+  border: 1px solid #e4e4e4;
+  border-radius: 14px;
+}
+
+.admin-product-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.admin-product-form-header h2 {
+  margin: 0;
+
+  color: #111;
+
+  font-size: 26px;
+
+  letter-spacing: -0.4px;
+}
+
+.admin-cancel-edit {
+  border: none;
+
+  background: transparent;
+
+  color: #111;
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-cancel-edit:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   FORM
+======================================== */
+
+.admin-product-form {
+  margin-top: 28px;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 20px;
+}
+
+.admin-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.admin-form-field label {
+  color: #111;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-form-field input,
+.admin-form-field select,
+.admin-form-field textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 12px 14px;
+
+  border: 1px solid #d7d7d7;
+  border-radius: 9px;
+
+  background: #fff;
+
+  color: #111;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.admin-form-field input,
+.admin-form-field select {
+  height: 45px;
+}
+
+.admin-form-field input:focus,
+.admin-form-field select:focus,
+.admin-form-field textarea:focus {
+  border-color: #111;
+
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-form-field textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.admin-form-field small {
+  color: #777;
+  font-size: 12px;
+}
+
+.admin-form-full {
+  grid-column: 1 / -1;
+}
+
+/* ========================================
+   CATEGORY
+======================================== */
+
+.admin-category-select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.admin-category-warning {
+  color: #b42318 !important;
+}
+
+/* ========================================
+   STOCK STATUS IN FORM
+======================================== */
+
+.admin-form-stock-status {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-form-stock-status.stock-normal {
+  color: #16733b;
+}
+
+.admin-form-stock-status.stock-low {
+  color: #b54708;
+}
+
+.admin-form-stock-status.stock-out {
+  color: #b42318;
+}
+
+/* ========================================
+   IMAGE UPLOAD
+======================================== */
+
+.admin-image-upload {
+  min-height: 150px;
+
+  padding: 14px;
+
+  display: grid;
+
+  grid-template-columns: 100px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+
+  column-gap: 16px;
+
+  align-items: center;
+
+  box-sizing: border-box;
+
+  border: 1px dashed #d0d0d0;
+  border-radius: 10px;
+
+  background: #fafafa;
+}
+
+/* ========================================
+   IMAGE PREVIEW
+======================================== */
+
+.admin-image-preview {
+  grid-column: 1;
+  grid-row: 1 / 4;
+
+  position: relative;
+
+  width: 100px;
+  height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border-radius: 9px;
+  border: 1px solid #e2e2e2;
+
+  background: #f1f1f1;
+}
+
+.admin-image-preview img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+/* ========================================
+   EMPTY IMAGE
+======================================== */
+
+.admin-image-placeholder {
+  grid-column: 1;
+  grid-row: 1 / 4;
+
+  width: 100px;
+  height: 100px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  box-sizing: border-box;
+
+  border-radius: 9px;
+
+  background: #f1f1f1;
+
+  color: #888;
+}
+
+.admin-image-placeholder svg {
+  width: 28px;
+  height: 28px;
+
+  font-size: 28px;
+}
+
+.admin-image-placeholder span {
+  max-width: 90px;
+
+  font-size: 11px;
+
+  line-height: 1.3;
+
+  text-align: center;
+}
+
+/* ========================================
+   REMOVE IMAGE
+======================================== */
+
+.admin-image-remove {
+  position: absolute;
+
+  top: 5px;
+  right: 5px;
+
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #111;
+  color: #fff;
+
+  cursor: pointer;
+
+  z-index: 2;
+}
+
+.admin-image-remove:hover {
+  background: #333;
+}
+
+.admin-image-remove svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ========================================
+   CHOOSE IMAGE BUTTON
+======================================== */
+
+.admin-image-upload-btn {
+  grid-column: 2;
+  grid-row: 1;
+
+  width: max-content;
+  min-width: 135px;
+  height: 38px;
+
+  display: inline-flex !important;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  box-sizing: border-box;
+
+  padding: 0 14px;
+
+  border: 1px solid #111 !important;
+  border-radius: 7px;
+
+  background: #111 !important;
+  color: #fff !important;
+
+  font-family: inherit;
+
+  font-size: 13px !important;
+  font-weight: 600 !important;
+
+  line-height: 1 !important;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  -webkit-text-fill-color: #fff;
+}
+
+.admin-image-upload-btn:hover {
+  background: #222 !important;
+  border-color: #222 !important;
+}
+
+.admin-image-upload-btn:active {
+  transform: translateY(1px);
+}
+
+.admin-image-upload-btn svg {
+  width: 16px;
+  height: 16px;
+
+  flex-shrink: 0;
+
+  color: #fff !important;
+  stroke: #fff !important;
+}
+
+/*
+   IMPORTANT:
+   If another global label rule is affecting
+   this button, this keeps it looking like
+   a button rather than a form label.
+*/
+
+.admin-image-upload-btn::before {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   FILE NAME
+======================================== */
+
+.admin-image-file-name {
+  grid-column: 2;
+  grid-row: 2;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  color: #444 !important;
+
+  font-size: 12px !important;
+
+  line-height: 1.3;
+}
+
+/* ========================================
+   HELP TEXT
+======================================== */
+
+.admin-image-help {
+  grid-column: 2;
+  grid-row: 3;
+
+  margin: 0;
+
+  color: #888 !important;
+
+  font-size: 11px !important;
+
+  line-height: 1.35;
+}
+
+/* ========================================
+   ACTIVE CHECKBOX
+======================================== */
+
+.admin-active-checkbox {
+  grid-column: 1 / -1;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  color: #111;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-active-checkbox input {
+  width: 17px;
+  height: 17px;
+
+  cursor: pointer;
+}
+
+/* ========================================
+   FORM BUTTONS
+======================================== */
+
+.admin-product-form-actions {
+  grid-column: 1 / -1;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.admin-save-product-btn,
+.admin-reset-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  min-height: 42px;
+
+  padding: 0 16px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-save-product-btn {
+  border: 1px solid #111;
+
+  background: #111;
+  color: #fff;
+}
+
+.admin-save-product-btn:hover {
+  background: #222;
+}
+
+.admin-save-product-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.admin-reset-btn {
+  border: 1px solid #ddd;
+
+  background: #f4f4f4;
+
+  color: #111;
+}
+
+.admin-reset-btn:hover {
+  background: #e9e9e9;
+}
+
+/* ========================================
+   PRODUCT LIST
+======================================== */
+
+.admin-product-list-section {
+  margin-top: 50px;
+}
+
+.admin-product-list-header {
+  display: flex;
+
+  align-items: flex-end;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.admin-product-list-header h2 {
+  margin: 0;
+
+  color: #111;
+
+  font-size: 28px;
+
+  letter-spacing: -0.5px;
+}
+
+.admin-add-product-small {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 10px 15px;
+
+  border: 1px solid #111;
+
+  border-radius: 8px;
+
+  background: #111;
+
+  color: #fff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-add-product-small:hover {
+  background: #222;
+}
+
+/* ========================================
+   FILTERS
+======================================== */
+
+.admin-product-filters {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  margin: 22px 0;
+}
+
+.admin-product-filters input,
+.admin-product-filters select {
+  height: 44px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d7d7d7;
+
+  border-radius: 9px;
+
+  background: #fff;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  outline: none;
+}
+
+.admin-product-filters input {
+  flex: 1;
+
+  min-width: 260px;
+
+  padding: 0 14px;
+}
+
+.admin-product-filters select {
+  min-width: 170px;
+
+  padding: 0 12px;
+
+  cursor: pointer;
+}
+
+.admin-product-filters input:focus,
+.admin-product-filters select:focus {
+  border-color: #111;
+}
+
+/* ========================================
+   TABLE
+======================================== */
+
+.admin-products-table-wrapper {
+  overflow-x: auto;
+
+  border: 1px solid #e2e2e2;
+
+  border-radius: 13px;
+
+  background: #fff;
+}
+
+.admin-products-table {
+  width: 100%;
+
+  min-width: 900px;
+
+  border-collapse: collapse;
+}
+
+.admin-products-table th {
+  padding: 15px 18px;
+
+  background: #fafafa;
+
+  color: #666;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
+
+  text-align: left;
+
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.admin-products-table td {
+  padding: 16px 18px;
+
+  color: #111;
+
+  font-size: 14px;
+
+  border-bottom: 1px solid #eeeeee;
+}
+
+.admin-products-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-products-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* ========================================
+   PRODUCT NAME
+======================================== */
+
+.admin-product-name {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 240px;
+}
+
+.admin-product-name img,
+.admin-product-placeholder {
+  width: 50px;
+  height: 50px;
+
+  flex-shrink: 0;
+
+  border-radius: 9px;
+
+  object-fit: cover;
+}
+
+.admin-product-name img {
+  background: #f3f3f3;
+}
+
+.admin-product-placeholder {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #f3f3f3;
+
+  color: #777;
+}
+
+.admin-product-placeholder svg {
+  font-size: 20px;
+}
+
+.admin-product-name strong {
+  font-size: 14px;
+}
+
+/* ========================================
+   STOCK
+======================================== */
+
+.admin-stock-cell {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 5px;
+}
+
+.admin-stock-cell strong {
+  font-size: 14px;
+}
+
+.stock-normal {
+  color: #16733b;
+
+  font-weight: 700;
+}
+
+.stock-low {
+  color: #b54708;
+
+  font-weight: 700;
+}
+
+.stock-out {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 4px 9px;
+
+  border-radius: 999px;
+
+  background: #fff0f0;
+
+  color: #b42318;
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+/* ========================================
+   STATUS
+======================================== */
+
+.product-active,
+.product-inactive {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.product-active {
+  background: #e8f7ed;
+
+  color: #16733b;
+}
+
+.product-inactive {
+  background: #f1f1f1;
+
+  color: #666;
+}
+
+/* ========================================
+   ACTIONS
+======================================== */
+
+.admin-product-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.admin-edit-btn,
+.admin-delete-btn {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 8px 11px;
+
+  border-radius: 7px;
+
+  background: transparent;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.admin-edit-btn {
+  border: 1px solid #ccc;
+
+  color: #111;
+}
+
+.admin-edit-btn:hover {
+  background: #f5f5f5;
+}
+
+.admin-delete-btn {
+  border: 1px solid #e2b5b5;
+
+  color: #b42318;
+}
+
+.admin-delete-btn:hover {
+  background: #fff1f1;
+}
+
+/* ========================================
+   EMPTY
+======================================== */
+
+.admin-products-empty {
+  margin-top: 20px;
+
+  padding: 65px 20px;
+
+  text-align: center;
+
+  border: 1px dashed #ccc;
+
+  border-radius: 13px;
+
+  color: #666;
+}
+
+.admin-products-empty svg {
+  margin-bottom: 12px;
+
+  font-size: 38px;
+}
+
+.admin-products-empty h2 {
+  margin: 0 0 8px;
+
+  color: #111;
+}
+
+.admin-products-empty p {
+  margin: 0;
+
+  color: #666;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 700px) {
+  .admin-products-page {
+    padding: 25px 15px 60px;
+  }
+
+  .admin-products-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-product-form-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-product-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-full {
+    grid-column: auto;
+  }
+
+  .admin-active-checkbox {
+    grid-column: auto;
+  }
+
+  .admin-product-form-actions {
+    grid-column: auto;
+
+    flex-wrap: wrap;
+  }
+
+  .admin-product-list-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-product-filters {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .admin-product-filters input,
+  .admin-product-filters select {
+    width: 100%;
+
+    min-width: 0;
+  }
+
+  .admin-products-table-wrapper {
+    border-radius: 10px;
+  }
+
+  .admin-stock-cell {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 5px;
+  }
+
+  /* Mobile image upload */
+  .admin-image-upload {
+    min-height: 200px;
+
+    grid-template-columns: 1fr;
+
+    grid-template-rows: auto auto auto auto;
+
+    justify-items: center;
+
+    row-gap: 8px;
+
+    column-gap: 0;
+  }
+
+  .admin-image-preview,
+  .admin-image-placeholder {
+    grid-column: 1;
+
+    grid-row: 1;
+
+    width: 90px;
+    height: 90px;
+  }
+
+  .admin-image-upload-btn {
+    grid-column: 1;
+
+    grid-row: 2;
+  }
+
+  .admin-image-file-name {
+    grid-column: 1;
+
+    grid-row: 3;
+
+    max-width: 90%;
+  }
+
+  .admin-image-help {
+    grid-column: 1;
+
+    grid-row: 4;
+
+    text-align: center;
+  }
+}

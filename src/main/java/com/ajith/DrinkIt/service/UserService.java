@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.ajith.drinkit.dto.UserRequest;
 import com.ajith.drinkit.dto.UserResponse;
-import com.ajith.drinkit.entity.User;
 
 public interface UserService {
 
@@ -14,12 +13,16 @@ public interface UserService {
 
     UserResponse getUserById(Long id);
 
-    UserResponse updateUser(Long id, UserRequest request);
+    UserResponse updateUser(
+            Long id,
+            UserRequest request);
 
     void deleteUser(Long id);
 
     // Logged-in user's profile
-    UserResponse getMyProfile(String email);
+
+    UserResponse getMyProfile(
+            String email);
 
     UserResponse updateMyProfile(
             String email,

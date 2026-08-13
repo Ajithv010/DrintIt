@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiLock, FiShield } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiLock,
+  FiShield,
+} from "react-icons/fi";
 
 import api from "../services/api";
 import "./AdminLogin.css";
@@ -59,18 +63,36 @@ function AdminLogin() {
         return;
       }
 
-      // Store authentication token
+      // ========================================
+      // STORE AUTHENTICATION
+      // ========================================
+
       localStorage.setItem(
         "drinkit_token",
         token
       );
 
-      // Tell Navbar/authenticated components
+      // ========================================
+      // STORE ADMIN ROLE
+      // ========================================
+
+      localStorage.setItem(
+        "drinkit_role",
+        "ADMIN"
+      );
+
+      // ========================================
+      // UPDATE AUTH STATE
+      // ========================================
+
       window.dispatchEvent(
         new Event("authUpdated")
       );
 
-      // Go to admin dashboard
+      // ========================================
+      // GO TO ADMIN DASHBOARD
+      // ========================================
+
       navigate("/admin");
 
     } catch (err) {
@@ -88,12 +110,16 @@ function AdminLogin() {
     }
   };
 
+  // ========================================
+  // UI
+  // ========================================
+
   return (
     <main className="admin-login-page">
 
       <div className="admin-login-card">
 
-        {/* ICON */}
+        {/* ADMIN ICON */}
 
         <div className="admin-login-icon">
           <FiShield />
@@ -113,7 +139,7 @@ function AdminLogin() {
           Sign in to manage DrinkIt
         </p>
 
-        {/* FORM */}
+        {/* LOGIN FORM */}
 
         <form onSubmit={handleLogin}>
 
@@ -169,7 +195,7 @@ function AdminLogin() {
             </p>
           )}
 
-          {/* LOGIN */}
+          {/* LOGIN BUTTON */}
 
           <button
             type="submit"
@@ -183,7 +209,7 @@ function AdminLogin() {
 
         </form>
 
-        {/* BACK */}
+        {/* BACK TO DRINKIT */}
 
         <button
           type="button"

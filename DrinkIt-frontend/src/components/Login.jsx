@@ -48,11 +48,16 @@ if (response.data?.token) {
   );
 }
 
+localStorage.setItem(
+  "drinkit_role",
+  "CUSTOMER"
+);
+
 window.dispatchEvent(
   new Event("authUpdated")
 );
 
-navigate("/");
+navigate("/home");
 
     } catch (err) {
       console.error(

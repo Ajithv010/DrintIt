@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiArrowLeft, FiPackage } from "react-icons/fi";
+
+import {
+  FiArrowLeft,
+  FiPackage,
+  FiSearch,
+  FiArrowRight,
+} from "react-icons/fi";
 
 import api from "../services/api";
 import "./AdminOrders.css";
@@ -9,6 +15,9 @@ function AdminOrders() {
   const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -16,54 +25,250 @@ function AdminOrders() {
   // LOAD ALL ORDERS
   // ========================================
 
-  const loadOrders = async () => {
-    try {
-      setLoading(true);
-      setError("");
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-      const response = await api.get("/orders");
+        console.log("ADMIN ORDERS: loading...");
 
-      setOrders(response.data || []);
-    } catch (err) {
-      console.error("Error loading admin orders:", err);
-
-      if (err.response?.status === 401) {
-        navigate("/login");
-        return;
-      }
-
-      if (err.response?.status === 403) {
-        setError(
-          "You do not have permission to access admin orders."
+        const response = await api.get(
+          "/orders/admin/all"
         );
-        return;
-      }
 
-      setError(
-        err.response?.data?.message ||
-          "Unable to load orders."
-      );
-    } finally {
-      setLoading(false);
-    }
+        console.log(
+          "ADMIN ORDERS RESPONSE:",
+          response.data
+        );
+
+        const data = response.data;
+
+        if (Array.isArray(data)) {
+          setOrders(data);
+        } else if (Array.isArray(data?.content)) {
+          setOrders(data.content);
+        } else if (Array.isArray(data?.orders)) {
+          setOrders(data.orders);
+        } else {
+          setOrders([]);
+        }
+      } catch (err) {
+        console.error(
+          "ADMIN ORDERS ERROR:",
+          err
+        );
+
+        if (
+          err.response?.status === 401 ||
+          err.response?.status === 403
+        ) {
+          navigate("/admin/login");
+          return;
+        }
+
+        setError(
+          err.response?.data?.message ||
+            "Unable to load orders."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, [navigate]);
+
+  // ========================================
+  // GET ORDER ID
+  // ========================================
+
+  const getOrderId = (order) => {
+    return (
+      order?.orderId ??
+      order?.id ??
+      null
+    );
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
   // ========================================
-  // UPDATE STATUS
+  // GET CUSTOMER NAME
   // ========================================
 
-  const updateStatus = async (orderId, status) => {
+  const getCustomerName = (order) => {
+    return (
+      order?.customerName ||
+      order?.customer?.name ||
+      order?.customer?.firstName ||
+      order?.userName ||
+      order?.user?.name ||
+      order?.user?.firstName ||
+      "Customer"
+    );
+  };
+
+  // ========================================
+  // GET CUSTOMER EMAIL
+  // ========================================
+
+  const getCustomerEmail = (order) => {
+    return (
+      order?.customerEmail ||
+      order?.customer?.email ||
+      order?.user?.email ||
+      order?.email ||
+      "—"
+    );
+  };
+
+  // ========================================
+  // GET STATUS
+  // ========================================
+
+  const getStatus = (order) => {
+    return String(
+      order?.status || "PENDING"
+    ).toUpperCase();
+  };
+
+  // ========================================
+  // GET TOTAL
+  // ========================================
+
+  const getTotal = (order) => {
+    return (
+      order?.totalAmount ??
+      order?.total ??
+      order?.grandTotal ??
+      0
+    );
+  };
+
+  // ========================================
+  // GET ITEMS
+  // ========================================
+
+  const getItems = (order) => {
+    const items =
+      order?.items ||
+      order?.orderItems ||
+      [];
+
+    return Array.isArray(items)
+      ? items
+      : [];
+  };
+
+  // ========================================
+  // FILTER ORDERS
+  // ========================================
+
+  const filteredOrders = orders.filter(
+    (order) => {
+      const searchValue =
+        search.trim().toLowerCase();
+
+      const orderId = String(
+        getOrderId(order) || ""
+      ).toLowerCase();
+
+      const customer =
+        getCustomerName(order)
+          .toLowerCase();
+
+      const email =
+        getCustomerEmail(order)
+          .toLowerCase();
+
+      const status =
+        getStatus(order);
+
+      const matchesSearch =
+        !searchValue ||
+        orderId.includes(searchValue) ||
+        customer.includes(searchValue) ||
+        email.includes(searchValue) ||
+        status
+          .toLowerCase()
+          .includes(searchValue);
+
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        status === statusFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus
+      );
+    }
+  );
+
+  // ========================================
+  // STATUS COUNTS
+  // ========================================
+
+  const pendingCount =
+    orders.filter(
+      (order) =>
+        getStatus(order) === "PENDING"
+    ).length;
+
+  const confirmedCount =
+    orders.filter(
+      (order) =>
+        getStatus(order) === "CONFIRMED"
+    ).length;
+
+  const deliveredCount =
+    orders.filter(
+      (order) =>
+        getStatus(order) === "DELIVERED"
+    ).length;
+
+  const cancelledCount =
+    orders.filter(
+      (order) =>
+        getStatus(order) === "CANCELLED"
+    ).length;
+
+  // ========================================
+  // UPDATE ORDER STATUS
+  // ========================================
+
+  const handleStatusChange = async (
+    orderId,
+    newStatus
+  ) => {
     try {
       await api.put(
         `/orders/${orderId}/status`,
-        { status }
+        null,
+        {
+          params: {
+            status: newStatus,
+          },
+        }
       );
 
-      await loadOrders();
+      setOrders(
+        (previousOrders) =>
+          previousOrders.map(
+            (order) => {
+              if (
+                String(
+                  getOrderId(order)
+                ) === String(orderId)
+              ) {
+                return {
+                  ...order,
+                  status: newStatus,
+                };
+              }
+
+              return order;
+            }
+          )
+      );
     } catch (err) {
       console.error(
         "Error updating order status:",
@@ -78,32 +283,37 @@ function AdminOrders() {
   };
 
   // ========================================
-  // STATUS BUTTONS
-  // ========================================
-
-  const handleStatusChange = (order) => {
-    const status = String(
-      order.status || "PENDING"
-    ).toUpperCase();
-
-    if (status === "PENDING") {
-      updateStatus(order.id, "CONFIRMED");
-      return;
-    }
-
-    if (status === "CONFIRMED") {
-      updateStatus(order.id, "DELIVERED");
-    }
-  };
-
-  // ========================================
   // LOADING
   // ========================================
 
   if (loading) {
     return (
       <main className="admin-orders-page">
-        <p>Loading orders...</p>
+
+        <button
+          className="admin-orders-back"
+          onClick={() =>
+            navigate("/admin")
+          }
+        >
+          <FiArrowLeft />
+          Back to Dashboard
+        </button>
+
+        <div className="admin-orders-loading">
+
+          <FiPackage />
+
+          <h2>
+            Loading orders...
+          </h2>
+
+          <p>
+            Please wait while orders are loaded.
+          </p>
+
+        </div>
+
       </main>
     );
   }
@@ -117,24 +327,31 @@ function AdminOrders() {
       <main className="admin-orders-page">
 
         <button
-          className="back-btn"
-          onClick={() => navigate("/")}
+          className="admin-orders-back"
+          onClick={() =>
+            navigate("/admin")
+          }
         >
           <FiArrowLeft />
-          Back
+          Back to Dashboard
         </button>
 
         <div className="admin-orders-error">
+
           <FiPackage />
 
-          <h2>{error}</h2>
+          <h2>
+            {error}
+          </h2>
 
           <button
-            className="shop-btn"
-            onClick={loadOrders}
+            onClick={() =>
+              window.location.reload()
+            }
           >
             Try Again
           </button>
+
         </div>
 
       </main>
@@ -148,215 +365,369 @@ function AdminOrders() {
   return (
     <main className="admin-orders-page">
 
-      {/* HEADER */}
+      {/* BACK */}
 
       <button
-        className="back-btn"
-        onClick={() => navigate("/")}
+        className="admin-orders-back"
+        onClick={() =>
+          navigate("/admin")
+        }
       >
         <FiArrowLeft />
-        Back
+        Back to Dashboard
       </button>
 
-      <div className="admin-orders-header">
+
+      {/* HEADER */}
+
+      <header className="admin-orders-header">
 
         <div>
-          <p className="section-label">
-            ADMIN
+
+          <p className="admin-orders-label">
+            DRINKIT ADMIN
           </p>
 
           <h1>
             Manage Orders
           </h1>
+
+          <p className="admin-orders-subtitle">
+            View and manage customer orders.
+          </p>
+
         </div>
 
-        <span>
+        <strong className="admin-orders-count">
           {orders.length}{" "}
           {orders.length === 1
             ? "order"
             : "orders"}
-        </span>
+        </strong>
 
-      </div>
+      </header>
+
+
+      {/* STATUS SUMMARY */}
+
+      <section className="admin-order-status-grid">
+
+        <button
+          className={
+            statusFilter === "PENDING"
+              ? "admin-order-status-card selected"
+              : "admin-order-status-card"
+          }
+          onClick={() =>
+            setStatusFilter(
+              statusFilter === "PENDING"
+                ? "ALL"
+                : "PENDING"
+            )
+          }
+        >
+          <span>
+            Pending
+          </span>
+
+          <strong>
+            {pendingCount}
+          </strong>
+        </button>
+
+
+        <button
+          className={
+            statusFilter === "CONFIRMED"
+              ? "admin-order-status-card selected"
+              : "admin-order-status-card"
+          }
+          onClick={() =>
+            setStatusFilter(
+              statusFilter === "CONFIRMED"
+                ? "ALL"
+                : "CONFIRMED"
+            )
+          }
+        >
+          <span>
+            Confirmed
+          </span>
+
+          <strong>
+            {confirmedCount}
+          </strong>
+        </button>
+
+
+        <button
+          className={
+            statusFilter === "DELIVERED"
+              ? "admin-order-status-card selected"
+              : "admin-order-status-card"
+          }
+          onClick={() =>
+            setStatusFilter(
+              statusFilter === "DELIVERED"
+                ? "ALL"
+                : "DELIVERED"
+            )
+          }
+        >
+          <span>
+            Delivered
+          </span>
+
+          <strong>
+            {deliveredCount}
+          </strong>
+        </button>
+
+
+        <button
+          className={
+            statusFilter === "CANCELLED"
+              ? "admin-order-status-card selected"
+              : "admin-order-status-card"
+          }
+          onClick={() =>
+            setStatusFilter(
+              statusFilter === "CANCELLED"
+                ? "ALL"
+                : "CANCELLED"
+            )
+          }
+        >
+          <span>
+            Cancelled
+          </span>
+
+          <strong>
+            {cancelledCount}
+          </strong>
+        </button>
+
+      </section>
+
+
+      {/* SEARCH */}
+
+      <section className="admin-orders-controls">
+
+        <div className="admin-orders-search">
+
+          <FiSearch />
+
+          <input
+            type="text"
+            placeholder="Search order, customer or email..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+          />
+
+        </div>
+
+
+        <select
+          className="admin-orders-filter"
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(
+              e.target.value
+            )
+          }
+        >
+          <option value="ALL">
+            All Orders
+          </option>
+
+          <option value="PENDING">
+            Pending
+          </option>
+
+          <option value="CONFIRMED">
+            Confirmed
+          </option>
+
+          <option value="DELIVERED">
+            Delivered
+          </option>
+
+          <option value="CANCELLED">
+            Cancelled
+          </option>
+
+        </select>
+
+      </section>
+
 
       {/* EMPTY */}
 
-      {orders.length === 0 ? (
+      {filteredOrders.length === 0 ? (
 
         <div className="admin-orders-empty">
 
           <FiPackage />
 
           <h2>
-            No orders yet
+            {search ||
+            statusFilter !== "ALL"
+              ? "No orders found"
+              : "No orders yet"}
           </h2>
 
           <p>
-            Customer orders will appear here.
+            {search ||
+            statusFilter !== "ALL"
+              ? "Try changing your search or filter."
+              : "Customer orders will appear here."}
           </p>
 
         </div>
 
       ) : (
 
+        /* ORDER LIST */
+
         <section className="admin-orders-list">
 
-          {orders.map((order) => {
+          {filteredOrders.map(
+            (order) => {
 
-            const orderId =
-              order.id ??
-              order.orderId;
+              const orderId =
+                getOrderId(order);
 
-            const status =
-              String(
-                order.status ||
-                  "PENDING"
-              ).toUpperCase();
+              const customerName =
+                getCustomerName(order);
 
-            const total =
-              order.totalAmount ??
-              order.total ??
-              0;
+              const customerEmail =
+                getCustomerEmail(order);
 
-            const items =
-              order.items ||
-              order.orderItems ||
-              [];
+              const status =
+                getStatus(order);
 
-            return (
-              <article
-                className="admin-order-card"
-                key={orderId}
-              >
+              const total =
+                getTotal(order);
 
-                {/* ORDER HEADER */}
+              const items =
+                getItems(order);
 
-                <div className="admin-order-top">
+              return (
+                <article
+                  className="admin-order-card"
+                  key={orderId}
+                >
 
-                  <div>
+                  {/* LEFT */}
 
-                    <p className="admin-order-label">
-                      ORDER
-                    </p>
+                  <div className="admin-order-main">
 
-                    <h2>
-                      #{orderId}
-                    </h2>
+                    <div className="admin-order-icon">
+                      <FiPackage />
+                    </div>
+
+                    <div className="admin-order-info">
+
+                      <div className="admin-order-title">
+
+                        <strong>
+                          Order #{orderId}
+                        </strong>
+
+                        <span
+                          className={`admin-order-status ${status.toLowerCase()}`}
+                        >
+                          {status}
+                        </span>
+
+                      </div>
+
+                      <p className="admin-order-customer">
+                        {customerName}
+                      </p>
+
+                      <p className="admin-order-email">
+                        {customerEmail}
+                      </p>
+
+                      <p className="admin-order-items">
+
+                        {items.length}{" "}
+                        {items.length === 1
+                          ? "item"
+                          : "items"}
+
+                      </p>
+
+                    </div>
 
                   </div>
 
-                  <span
-                    className={`admin-order-status ${status.toLowerCase()}`}
-                  >
-                    {status}
-                  </span>
 
-                </div>
+                  {/* RIGHT */}
 
-                {/* ITEMS */}
+                  <div className="admin-order-actions">
 
-                <div className="admin-order-items">
+                    <strong className="admin-order-total">
+                      ₹{total}
+                    </strong>
 
-                  {items.length === 0 ? (
-
-                    <p>
-                      No items found.
-                    </p>
-
-                  ) : (
-
-                    items.map(
-                      (item, index) => {
-
-                        const name =
-                          item.productName ??
-                          item.name ??
-                          item.product?.name ??
-                          "Drink";
-
-                        const quantity =
-                          item.quantity ??
-                          1;
-
-                        return (
-                          <div
-                            className="admin-order-item"
-                            key={
-                              item.id ??
-                              item.productId ??
-                              index
-                            }
-                          >
-
-                            <span>
-                              {name}
-                            </span>
-
-                            <span>
-                              × {quantity}
-                            </span>
-
-                          </div>
-                        );
-                      }
-                    )
-                  )}
-
-                </div>
-
-                {/* FOOTER */}
-
-                <div className="admin-order-footer">
-
-                  <strong>
-                    ₹{total}
-                  </strong>
-
-                  {status === "PENDING" && (
-                    <button
-                      className="admin-status-btn"
-                      onClick={() =>
+                    <select
+                      value={status}
+                      onChange={(e) =>
                         handleStatusChange(
-                          order
+                          orderId,
+                          e.target.value
+                        )
+                      }
+                      onClick={(e) =>
+                        e.stopPropagation()
+                      }
+                    >
+
+                      <option value="PENDING">
+                        Pending
+                      </option>
+
+                      <option value="CONFIRMED">
+                        Confirmed
+                      </option>
+
+                      <option value="DELIVERED">
+                        Delivered
+                      </option>
+
+                      <option value="CANCELLED">
+                        Cancelled
+                      </option>
+
+                    </select>
+
+
+                    <button
+                      className="admin-order-view-btn"
+                      onClick={() =>
+                        navigate(
+                          `/admin/orders/${orderId}`
                         )
                       }
                     >
-                      Confirm Order
+                      View
+                      <FiArrowRight />
                     </button>
-                  )}
 
-                  {status === "CONFIRMED" && (
-                    <button
-                      className="admin-status-btn"
-                      onClick={() =>
-                        handleStatusChange(
-                          order
-                        )
-                      }
-                    >
-                      Mark Delivered
-                    </button>
-                  )}
+                  </div>
 
-                  {status === "DELIVERED" && (
-                    <span className="admin-completed">
-                      Completed
-                    </span>
-                  )}
-
-                  {status === "CANCELLED" && (
-                    <span className="admin-cancelled">
-                      Cancelled
-                    </span>
-                  )}
-
-                </div>
-
-              </article>
-            );
-          })}
+                </article>
+              );
+            }
+          )}
 
         </section>
+
       )}
 
     </main>
