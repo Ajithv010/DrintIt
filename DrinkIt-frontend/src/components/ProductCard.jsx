@@ -115,9 +115,10 @@ function ProductCard({ product }) {
 
     return (
 
-        <article
+        <button
             className="product-card"
             onClick={handleCardClick}
+            type="button"
         >
 
             {/* IMAGE */}
@@ -172,7 +173,7 @@ function ProductCard({ product }) {
 
             </div>
 
-        </article>
+        </button>
     );
 }
 

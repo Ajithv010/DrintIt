@@ -291,6 +291,7 @@ function AdminOrders() {
       <main className="admin-orders-page">
 
         <button
+          type="button"
           className="admin-orders-back"
           onClick={() =>
             navigate("/admin")
@@ -327,6 +328,7 @@ function AdminOrders() {
       <main className="admin-orders-page">
 
         <button
+          type="button"
           className="admin-orders-back"
           onClick={() =>
             navigate("/admin")
@@ -345,6 +347,7 @@ function AdminOrders() {
           </h2>
 
           <button
+            type="button"
             onClick={() =>
               window.location.reload()
             }
@@ -368,6 +371,7 @@ function AdminOrders() {
       {/* BACK */}
 
       <button
+        type="button"
         className="admin-orders-back"
         onClick={() =>
           navigate("/admin")
@@ -413,6 +417,7 @@ function AdminOrders() {
       <section className="admin-order-status-grid">
 
         <button
+          type="button"
           className={
             statusFilter === "PENDING"
               ? "admin-order-status-card selected"
@@ -437,6 +442,7 @@ function AdminOrders() {
 
 
         <button
+          type="button"
           className={
             statusFilter === "CONFIRMED"
               ? "admin-order-status-card selected"
@@ -461,6 +467,7 @@ function AdminOrders() {
 
 
         <button
+          type="button"
           className={
             statusFilter === "DELIVERED"
               ? "admin-order-status-card selected"
@@ -485,6 +492,7 @@ function AdminOrders() {
 
 
         <button
+          type="button"
           className={
             statusFilter === "CANCELLED"
               ? "admin-order-status-card selected"
@@ -708,6 +716,7 @@ function AdminOrders() {
 
 
                     <button
+                      type="button"
                       className="admin-order-view-btn"
                       onClick={() =>
                         navigate(

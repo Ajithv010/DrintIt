@@ -24,6 +24,7 @@ import com.ajith.drinkit.entity.Category;
 import com.ajith.drinkit.entity.Product;
 import com.ajith.drinkit.exception.ResourceNotFoundException;
 import com.ajith.drinkit.repository.CategoryRepository;
+import com.ajith.drinkit.repository.OrderItemRepository;
 import com.ajith.drinkit.repository.ProductRepository;
 import com.ajith.drinkit.service.ProductService;
 
@@ -32,6 +33,7 @@ public class ProductServiceImpl implements ProductService {
 
         private final ProductRepository productRepository;
         private final CategoryRepository categoryRepository;
+        private final OrderItemRepository orderItemRepository;
 
         /*
          * Images are stored inside:
@@ -49,10 +51,12 @@ public class ProductServiceImpl implements ProductService {
 
         public ProductServiceImpl(
                         ProductRepository productRepository,
-                        CategoryRepository categoryRepository) {
+                        CategoryRepository categoryRepository,
+                        OrderItemRepository orderItemRepository) {
 
                 this.productRepository = productRepository;
                 this.categoryRepository = categoryRepository;
+                this.orderItemRepository = orderItemRepository;
         }
 
         // ========================================
@@ -138,21 +142,25 @@ public class ProductServiceImpl implements ProductService {
                         int size) {
 
                 if (page < 0) {
+
                         throw new IllegalArgumentException(
                                         "Page must be greater than or equal to 0");
                 }
 
                 if (size <= 0 || size > 100) {
+
                         throw new IllegalArgumentException(
                                         "Size must be between 1 and 100");
                 }
 
                 if (minPrice != null && minPrice < 0) {
+
                         throw new IllegalArgumentException(
                                         "Minimum price cannot be negative");
                 }
 
                 if (maxPrice != null && maxPrice < 0) {
+
                         throw new IllegalArgumentException(
                                         "Maximum price cannot be negative");
                 }
@@ -188,6 +196,7 @@ public class ProductServiceImpl implements ProductService {
                                 break;
 
                         default:
+
                                 throw new IllegalArgumentException(
                                                 "Invalid sort field. Use name, price, stock or brand");
                 }
@@ -273,9 +282,10 @@ public class ProductServiceImpl implements ProductService {
                         specification = specification.and(
                                         (root,
                                                         query,
-                                                        criteriaBuilder) -> criteriaBuilder.greaterThanOrEqualTo(
-                                                                        root.get("price"),
-                                                                        minPrice));
+                                                        criteriaBuilder) -> criteriaBuilder
+                                                                        .greaterThanOrEqualTo(
+                                                                                        root.get("price"),
+                                                                                        minPrice));
                 }
 
                 // ========================================
@@ -287,9 +297,10 @@ public class ProductServiceImpl implements ProductService {
                         specification = specification.and(
                                         (root,
                                                         query,
-                                                        criteriaBuilder) -> criteriaBuilder.lessThanOrEqualTo(
-                                                                        root.get("price"),
-                                                                        maxPrice));
+                                                        criteriaBuilder) -> criteriaBuilder
+                                                                        .lessThanOrEqualTo(
+                                                                                        root.get("price"),
+                                                                                        maxPrice));
                 }
 
                 // ========================================
@@ -422,22 +433,72 @@ public class ProductServiceImpl implements ProductService {
         // ========================================
 
         @Override
-        public void deleteProduct(
-                        Long id) {
+        public void deleteProduct(Long id) {
 
                 Product product = productRepository
                                 .findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Product not found"));
 
-                /*
-                 * Soft delete.
-                 *
-                 * Existing orders may reference this product.
-                 */
-                product.setActive(false);
+                // ========================================
+                // ACTIVE PRODUCT
+                // ========================================
 
-                productRepository.save(product);
+                /*
+                 * First delete:
+                 *
+                 * Do NOT physically delete the product.
+                 *
+                 * Instead mark it inactive.
+                 *
+                 * This keeps the product available for
+                 * existing order history.
+                 */
+
+                if (Boolean.TRUE.equals(
+                                product.getActive())) {
+
+                        product.setActive(false);
+
+                        productRepository.save(product);
+
+                        return;
+                }
+
+                // ========================================
+                // INACTIVE PRODUCT
+                // ========================================
+
+                /*
+                 * Product is already inactive.
+                 *
+                 * Before permanently deleting it,
+                 * check whether it is referenced by
+                 * an existing order item.
+                 */
+
+                boolean usedInOrder = orderItemRepository
+                                .existsByProduct_Id(id);
+
+                // ========================================
+                // PRODUCT USED IN ORDER
+                // ========================================
+
+                if (usedInOrder) {
+
+                        throw new IllegalStateException(
+                                        "This product cannot be permanently deleted because it is used in an existing order.");
+                }
+
+                // ========================================
+                // PRODUCT NEVER USED IN ORDER
+                // ========================================
+
+                /*
+                 * Safe to permanently delete.
+                 */
+
+                productRepository.delete(product);
         }
 
         // ========================================
@@ -514,15 +575,18 @@ public class ProductServiceImpl implements ProductService {
                 // ========================================
 
                 Path directory = Paths.get(
-                                System.getProperty("user.dir"))
+                                System.getProperty(
+                                                "user.dir"))
                                 .resolve(uploadDirectory)
                                 .normalize();
 
                 try {
 
-                        Files.createDirectories(directory);
+                        Files.createDirectories(
+                                        directory);
 
-                        Path target = directory.resolve(fileName);
+                        Path target = directory.resolve(
+                                        fileName);
 
                         Files.copy(
                                         image.getInputStream(),
@@ -553,7 +617,9 @@ public class ProductServiceImpl implements ProductService {
                 }
 
                 if (request.getName() == null ||
-                                request.getName().trim().isEmpty()) {
+                                request.getName()
+                                                .trim()
+                                                .isEmpty()) {
 
                         throw new IllegalArgumentException(
                                         "Product name is required");

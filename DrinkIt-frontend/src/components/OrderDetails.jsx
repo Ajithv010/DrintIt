@@ -174,6 +174,7 @@ function OrderDetails() {
       <main className="order-details-page">
 
         <button
+          type="button"
           className="back-btn"
           onClick={() =>
             navigate("/orders")
@@ -227,6 +228,7 @@ function OrderDetails() {
       {/* BACK */}
 
       <button
+        type="button"
         className="back-btn"
         onClick={() =>
           navigate("/orders")

@@ -5,6 +5,7 @@ import {
   FiPlus,
   FiTrash2,
   FiLayers,
+  FiUpload,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +29,12 @@ function AdminCategories() {
 
   const [editingId, setEditingId] = useState(null);
 
+  const [selectedImage, setSelectedImage] =
+    useState(null);
+
+  const [imagePreview, setImagePreview] =
+    useState("");
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -43,15 +50,20 @@ function AdminCategories() {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/categories");
+      const response =
+        await api.get("/categories");
 
       const data = response.data;
 
       if (Array.isArray(data)) {
         setCategories(data);
-      } else if (Array.isArray(data?.content)) {
+      } else if (
+        Array.isArray(data?.content)
+      ) {
         setCategories(data.content);
-      } else if (Array.isArray(data?.categories)) {
+      } else if (
+        Array.isArray(data?.categories)
+      ) {
         setCategories(data.categories);
       } else {
         setCategories([]);
@@ -63,8 +75,13 @@ function AdminCategories() {
       );
 
       if (err.response?.status === 401) {
-        localStorage.removeItem("drinkit_token");
-        localStorage.removeItem("drinkit_role");
+        localStorage.removeItem(
+          "drinkit_token"
+        );
+
+        localStorage.removeItem(
+          "drinkit_role"
+        );
 
         window.dispatchEvent(
           new Event("authUpdated")
@@ -139,6 +156,68 @@ function AdminCategories() {
   };
 
   // ========================================
+  // IMAGE CHANGE
+  // ========================================
+
+  const handleImageChange = (e) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(
+      file.type
+    )) {
+      const errorMessage =
+        "Only JPG, PNG and WEBP images are allowed.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      const errorMessage =
+        "Image size must be less than 5 MB.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    setSelectedImage(file);
+
+    setImagePreview(
+      URL.createObjectURL(file)
+    );
+
+    setError("");
+  };
+
+  // ========================================
   // RESET
   // ========================================
 
@@ -148,6 +227,11 @@ function AdminCategories() {
     });
 
     setEditingId(null);
+
+    setSelectedImage(null);
+
+    setImagePreview("");
+
     setError("");
   };
 
@@ -168,6 +252,18 @@ function AdminCategories() {
         category.active !== false,
     });
 
+    setSelectedImage(null);
+
+    if (category.imageUrl) {
+      setImagePreview(
+        category.imageUrl.startsWith("http")
+          ? category.imageUrl
+          : `/images/${category.imageUrl}`
+      );
+    } else {
+      setImagePreview("");
+    }
+
     setError("");
 
     window.scrollTo({
@@ -187,13 +283,11 @@ function AdminCategories() {
       setSaving(true);
       setError("");
 
-      const name = form.name.trim();
+      const name =
+        form.name.trim();
 
       const description =
         form.description.trim();
-
-      const imageUrl =
-        form.imageUrl.trim();
 
       // ====================================
       // VALIDATION
@@ -213,11 +307,38 @@ function AdminCategories() {
         return;
       }
 
+      // ====================================
+      // IMAGE
+      // ====================================
+
+      let imageUrl =
+        form.imageUrl.trim();
+
+      if (selectedImage) {
+        const imageFormData =
+          new FormData();
+
+        imageFormData.append(
+          "image",
+          selectedImage
+        );
+
+        const imageResponse =
+          await api.post(
+            "/categories/upload-image",
+            imageFormData
+          );
+
+        imageUrl =
+          imageResponse.data.fileName;
+      }
+
       const payload = {
         name,
         description,
         imageUrl,
-        active: Boolean(form.active),
+        active:
+          Boolean(form.active),
       };
 
       console.log(
@@ -501,11 +622,12 @@ function AdminCategories() {
 
           <div className="admin-category-field">
 
-            <label>
+            <label htmlFor="category-name">
               Category Name
             </label>
 
             <input
+              id="category-name"
               type="text"
               name="name"
               value={form.name}
@@ -521,16 +643,50 @@ function AdminCategories() {
           <div className="admin-category-field">
 
             <label>
-              Image URL
+              Category Image
             </label>
 
-            <input
-              type="text"
-              name="imageUrl"
-              value={form.imageUrl}
-              onChange={handleChange}
-              placeholder="beer.jpg"
-            />
+            <div className="admin-category-image-upload">
+
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Category preview"
+                  className="admin-category-image-preview"
+                />
+              ) : (
+                <div className="admin-category-image-placeholder">
+                  <FiLayers />
+                  <span>
+                    No image selected
+                  </span>
+                </div>
+              )}
+
+              <label
+                htmlFor="category-image"
+                className="admin-category-upload-button"
+              >
+                <FiUpload />
+
+                {selectedImage
+                  ? "Change Image"
+                  : "Choose Image"}
+              </label>
+
+              <input
+                id="category-image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleImageChange}
+                hidden
+              />
+
+              <small>
+                JPG, PNG or WEBP • Max 5 MB
+              </small>
+
+            </div>
 
           </div>
 
@@ -538,11 +694,12 @@ function AdminCategories() {
 
           <div className="admin-category-field admin-category-full">
 
-            <label>
+            <label htmlFor="category-description">
               Description
             </label>
 
             <textarea
+              id="category-description"
               name="description"
               value={form.description}
               onChange={handleChange}
@@ -584,8 +741,8 @@ function AdminCategories() {
               {saving
                 ? "Saving..."
                 : editingId !== null
-                ? "Update Category"
-                : "Add Category"}
+                  ? "Update Category"
+                  : "Add Category"}
 
             </button>
 

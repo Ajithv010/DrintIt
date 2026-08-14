@@ -15,7 +15,8 @@ import com.ajith.drinkit.repository.UserRepository;
 import com.ajith.drinkit.service.AddressService;
 
 @Service
-public class AddressServiceImpl implements AddressService {
+public class AddressServiceImpl
+                implements AddressService {
 
         private final AddressRepository addressRepository;
         private final UserRepository userRepository;
@@ -25,6 +26,7 @@ public class AddressServiceImpl implements AddressService {
                         UserRepository userRepository) {
 
                 this.addressRepository = addressRepository;
+
                 this.userRepository = userRepository;
         }
 
@@ -45,7 +47,11 @@ public class AddressServiceImpl implements AddressService {
 
                 address.setUser(user);
 
-                mapRequestToEntity(request, address);
+                address.setActive(true);
+
+                mapRequestToEntity(
+                                request,
+                                address);
 
                 Address savedAddress = addressRepository.save(address);
 
@@ -62,8 +68,17 @@ public class AddressServiceImpl implements AddressService {
 
                 User user = getUser(email);
 
+                /*
+                 * IMPORTANT:
+                 *
+                 * Only active addresses are returned.
+                 *
+                 * Therefore an address that was deleted
+                 * will NOT appear after page refresh.
+                 */
+
                 return addressRepository
-                                .findByUser(user)
+                                .findByUserAndActiveTrue(user)
                                 .stream()
                                 .map(this::toResponse)
                                 .toList();
@@ -80,8 +95,15 @@ public class AddressServiceImpl implements AddressService {
 
                 User user = getUser(email);
 
+                /*
+                 * Only active addresses can be used
+                 * by the customer.
+                 */
+
                 Address address = addressRepository
-                                .findByIdAndUser(addressId, user)
+                                .findByIdAndUserAndActiveTrue(
+                                                addressId,
+                                                user)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Address not found"));
 
@@ -103,11 +125,15 @@ public class AddressServiceImpl implements AddressService {
                 validateRequest(request);
 
                 Address address = addressRepository
-                                .findByIdAndUser(addressId, user)
+                                .findByIdAndUserAndActiveTrue(
+                                                addressId,
+                                                user)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Address not found"));
 
-                mapRequestToEntity(request, address);
+                mapRequestToEntity(
+                                request,
+                                address);
 
                 Address updatedAddress = addressRepository.save(address);
 
@@ -126,11 +152,24 @@ public class AddressServiceImpl implements AddressService {
                 User user = getUser(email);
 
                 Address address = addressRepository
-                                .findByIdAndUser(addressId, user)
+                                .findByIdAndUserAndActiveTrue(
+                                                addressId,
+                                                user)
                                 .orElseThrow(() -> new ResourceNotFoundException(
                                                 "Address not found"));
 
-                addressRepository.delete(address);
+                /*
+                 * DO NOT physically delete the address.
+                 *
+                 * Existing orders may reference this
+                 * address through order.delivery_address_id.
+                 *
+                 * Instead perform a soft delete.
+                 */
+
+                address.setActive(false);
+
+                addressRepository.save(address);
         }
 
         // =========================
@@ -149,7 +188,8 @@ public class AddressServiceImpl implements AddressService {
         // VALIDATE REQUEST
         // =========================
 
-        private void validateRequest(AddressRequest request) {
+        private void validateRequest(
+                        AddressRequest request) {
 
                 if (request == null) {
 
@@ -157,60 +197,74 @@ public class AddressServiceImpl implements AddressService {
                                         "Address details are required");
                 }
 
-                if (isBlank(request.getFullName())) {
+                if (isBlank(
+                                request.getFullName())) {
 
                         throw new InvalidCartOperationException(
                                         "Full name is required");
                 }
 
-                if (isBlank(request.getPhoneNumber())) {
+                if (isBlank(
+                                request.getPhoneNumber())) {
 
                         throw new InvalidCartOperationException(
                                         "Phone number is required");
                 }
 
-                if (!request.getPhoneNumber().matches(
-                                "^[6-9][0-9]{9}$")) {
+                if (!request.getPhoneNumber()
+                                .matches(
+                                                "^[6-9][0-9]{9}$")) {
 
                         throw new InvalidCartOperationException(
                                         "Phone number must be a valid 10-digit Indian mobile number");
                 }
 
-                if (isBlank(request.getAddressLine())) {
+                if (isBlank(
+                                request.getAddressLine())) {
 
                         throw new InvalidCartOperationException(
                                         "Address line is required");
                 }
 
-                if (isBlank(request.getCity())) {
+                if (isBlank(
+                                request.getCity())) {
 
                         throw new InvalidCartOperationException(
                                         "City is required");
                 }
 
-                if (isBlank(request.getState())) {
+                if (isBlank(
+                                request.getState())) {
 
                         throw new InvalidCartOperationException(
                                         "State is required");
                 }
 
-                if (isBlank(request.getPincode())) {
+                if (isBlank(
+                                request.getPincode())) {
 
                         throw new InvalidCartOperationException(
                                         "Pincode is required");
                 }
 
-                if (!request.getPincode().matches(
-                                "^[1-9][0-9]{5}$")) {
+                if (!request.getPincode()
+                                .matches(
+                                                "^[1-9][0-9]{5}$")) {
 
                         throw new InvalidCartOperationException(
                                         "Pincode must be a valid 6-digit number");
                 }
         }
 
-        private boolean isBlank(String value) {
+        // =========================
+        // BLANK CHECK
+        // =========================
 
-                return value == null || value.trim().isEmpty();
+        private boolean isBlank(
+                        String value) {
+
+                return value == null ||
+                                value.trim().isEmpty();
         }
 
         // =========================
@@ -222,22 +276,28 @@ public class AddressServiceImpl implements AddressService {
                         Address address) {
 
                 address.setFullName(
-                                request.getFullName().trim());
+                                request.getFullName()
+                                                .trim());
 
                 address.setPhoneNumber(
-                                request.getPhoneNumber().trim());
+                                request.getPhoneNumber()
+                                                .trim());
 
                 address.setAddressLine(
-                                request.getAddressLine().trim());
+                                request.getAddressLine()
+                                                .trim());
 
                 address.setCity(
-                                request.getCity().trim());
+                                request.getCity()
+                                                .trim());
 
                 address.setState(
-                                request.getState().trim());
+                                request.getState()
+                                                .trim());
 
                 address.setPincode(
-                                request.getPincode().trim());
+                                request.getPincode()
+                                                .trim());
         }
 
         // =========================

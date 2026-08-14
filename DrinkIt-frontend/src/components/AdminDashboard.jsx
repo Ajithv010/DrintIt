@@ -247,6 +247,7 @@ function AdminDashboard() {
         </div>
 
         <button
+          type="button"
           className="admin-logout-btn"
           onClick={handleLogout}
         >
@@ -359,6 +360,7 @@ function AdminDashboard() {
         <div className="admin-action-grid">
 
           <button
+            type="button"
             className="admin-action-card"
             onClick={() =>
               navigate("/admin/orders")
@@ -385,6 +387,7 @@ function AdminDashboard() {
 
 
           <button
+            type="button"
             className="admin-action-card"
             onClick={() =>
               navigate("/admin/products")
@@ -411,6 +414,7 @@ function AdminDashboard() {
 
 
           <button
+            type="button"
             className="admin-action-card"
             onClick={() =>
               navigate("/admin/categories")
@@ -437,6 +441,7 @@ function AdminDashboard() {
 
 
           <button
+            type="button"
             className="admin-action-card"
             onClick={() =>
               navigate("/admin/users")
@@ -487,6 +492,7 @@ function AdminDashboard() {
           </div>
 
           <button
+            type="button"
             className="admin-view-btn"
             onClick={() =>
               navigate("/admin/orders")
@@ -578,6 +584,7 @@ function AdminDashboard() {
           </div>
 
           <button
+            type="button"
             className="admin-view-btn"
             onClick={() =>
               navigate("/admin/orders")
@@ -624,6 +631,7 @@ function AdminDashboard() {
 
                 return (
                   <button
+                    type="button"
                     className="admin-recent-order"
                     key={orderId}
                     onClick={() =>

@@ -76,7 +76,6 @@
   padding: 30px;
 
   background: #fff;
-
   border: 1px solid #e4e4e4;
   border-radius: 14px;
 }
@@ -223,6 +222,155 @@
   border: 1px solid #ddd;
 
   background: #f4f4f4;
+}
+
+/* ========================================
+   CATEGORY IMAGE UPLOAD
+======================================== */
+
+.admin-category-image-upload {
+  width: 100%;
+  min-height: 220px;
+
+  box-sizing: border-box;
+
+  border: 2px dashed #d4d4d4;
+  border-radius: 12px;
+
+  background: #fafafa;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  text-align: center;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-category-image-upload:hover {
+  border-color: #111;
+  background: #f7f7f7;
+}
+
+/* ========================================
+   EMPTY IMAGE PLACEHOLDER
+======================================== */
+
+.admin-category-image-placeholder {
+  width: 64px;
+  height: 64px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 14px;
+
+  border-radius: 12px;
+
+  background: #eeeeee;
+  color: #777;
+}
+
+.admin-category-image-placeholder svg {
+  width: 28px;
+  height: 28px;
+}
+
+.admin-category-image-placeholder span {
+  display: none;
+}
+
+/* ========================================
+   IMAGE PREVIEW
+======================================== */
+
+.admin-category-image-preview {
+  width: 130px;
+  height: 130px;
+
+  object-fit: cover;
+
+  margin-bottom: 15px;
+
+  border: 1px solid #dedede;
+  border-radius: 12px;
+
+  background: #fff;
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ========================================
+   CHOOSE / CHANGE IMAGE BUTTON
+======================================== */
+
+.admin-category-upload-button {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-width: 145px;
+
+  padding: 11px 18px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #111;
+  border-radius: 8px;
+
+  background: #111;
+  color: #fff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease;
+}
+
+.admin-category-upload-button:hover {
+  background: #222;
+}
+
+.admin-category-upload-button:active {
+  transform: translateY(1px);
+}
+
+.admin-category-upload-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* ========================================
+   IMAGE HELP TEXT
+======================================== */
+
+.admin-category-image-upload small {
+  display: block;
+
+  margin-top: 10px;
+
+  color: #777;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  text-align: center;
 }
 
 /* LIST */
@@ -423,6 +571,7 @@
 
 .admin-category-empty svg {
   font-size: 38px;
+
   margin-bottom: 12px;
 }
 
@@ -432,6 +581,7 @@
 
 .admin-category-empty p {
   margin: 0;
+
   color: #666;
 }
 
@@ -464,5 +614,14 @@
 
   .admin-category-row-actions {
     flex-direction: column;
+  }
+
+  .admin-category-image-upload {
+    min-height: 200px;
+  }
+
+  .admin-category-image-preview {
+    width: 110px;
+    height: 110px;
   }
 }

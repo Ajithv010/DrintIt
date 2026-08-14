@@ -197,6 +197,7 @@ function Navbar() {
             /* NOT LOGGED IN */
 
             <button
+              type="button"
               className="login-btn"
               onClick={() =>
                 navigate("/login")
@@ -213,6 +214,7 @@ function Navbar() {
             <>
 
               <button
+                type="button"
                 className="login-btn"
                 onClick={() =>
                   navigate("/account")
@@ -223,6 +225,7 @@ function Navbar() {
               </button>
 
               <button
+                type="button"
                 className="login-btn"
                 onClick={handleLogout}
               >
@@ -237,6 +240,7 @@ function Navbar() {
           {/* CART */}
 
           <button
+            type="button"
             className="cart-btn"
             onClick={() =>
               navigate("/cart")

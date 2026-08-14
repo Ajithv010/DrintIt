@@ -82,14 +82,7 @@ function Profile() {
 
       {/* BACK */}
 
-      <button
-        type="button"
-        className="back-btn"
-        onClick={() => navigate("/")}
-      >
-        <FiArrowLeft />
-        Back to Home
-      </button>
+   
 
       {/* HEADER */}
 

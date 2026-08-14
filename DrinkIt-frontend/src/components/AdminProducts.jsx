@@ -40,6 +40,7 @@ function AdminProducts() {
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+
   const [form, setForm] = useState(emptyForm);
 
   const [editingId, setEditingId] = useState(null);
@@ -49,12 +50,19 @@ function AdminProducts() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [categoryLoading, setCategoryLoading] = useState(true);
+  const [categoryLoading, setCategoryLoading] =
+    useState(true);
 
   const [error, setError] = useState("");
-
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  // ========================================
+  // STATUS FILTER
+  // ========================================
+
+  // ALL PRODUCTS is the default view
+  const [statusFilter, setStatusFilter] =
+    useState("ALL");
 
   // ========================================
   // STOCK STATUS
@@ -91,19 +99,25 @@ function AdminProducts() {
     try {
       setCategoryLoading(true);
 
-      const response = await api.get("/categories");
+      const response =
+        await api.get("/categories");
 
       const data = response.data;
 
       if (Array.isArray(data)) {
         setCategories(data);
-      } else if (Array.isArray(data?.content)) {
+      } else if (
+        Array.isArray(data?.content)
+      ) {
         setCategories(data.content);
-      } else if (Array.isArray(data?.categories)) {
+      } else if (
+        Array.isArray(data?.categories)
+      ) {
         setCategories(data.categories);
       } else {
         setCategories([]);
       }
+
     } catch (err) {
       console.error(
         "Error loading categories:",
@@ -120,6 +134,7 @@ function AdminProducts() {
         errorMessage,
         "error"
       );
+
     } finally {
       setCategoryLoading(false);
     }
@@ -134,28 +149,67 @@ function AdminProducts() {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/products");
+      /*
+       * ALL:
+       * Do not send active parameter.
+       * Backend returns all products.
+       *
+       * ACTIVE:
+       * active=true
+       *
+       * INACTIVE:
+       * active=false
+       */
+
+      const params = {};
+
+      if (statusFilter === "ACTIVE") {
+        params.active = true;
+      }
+
+      if (statusFilter === "INACTIVE") {
+        params.active = false;
+      }
+
+      const response = await api.get(
+        "/products",
+        {
+          params,
+        }
+      );
 
       const data = response.data;
 
       if (Array.isArray(data)) {
         setProducts(data);
-      } else if (Array.isArray(data?.content)) {
+      } else if (
+        Array.isArray(data?.content)
+      ) {
         setProducts(data.content);
-      } else if (Array.isArray(data?.products)) {
+      } else if (
+        Array.isArray(data?.products)
+      ) {
         setProducts(data.products);
       } else {
         setProducts([]);
       }
+
     } catch (err) {
       console.error(
         "Error loading admin products:",
         err
       );
 
-      if (err.response?.status === 401) {
-        localStorage.removeItem("drinkit_token");
-        localStorage.removeItem("drinkit_role");
+      if (
+        err.response?.status === 401
+      ) {
+        localStorage.removeItem(
+          "drinkit_token"
+        );
+
+        localStorage.removeItem(
+          "drinkit_role"
+        );
 
         window.dispatchEvent(
           new Event("authUpdated")
@@ -171,7 +225,9 @@ function AdminProducts() {
         return;
       }
 
-      if (err.response?.status === 403) {
+      if (
+        err.response?.status === 403
+      ) {
         const errorMessage =
           "You do not have permission to manage products.";
 
@@ -195,22 +251,30 @@ function AdminProducts() {
         errorMessage,
         "error"
       );
+
     } finally {
       setLoading(false);
     }
   };
 
   // ========================================
-  // INITIAL LOAD
+  // LOAD CATEGORIES ONCE
   // ========================================
 
   useEffect(() => {
-    loadProducts();
     loadCategories();
   }, []);
 
   // ========================================
-  // INPUT CHANGE
+  // LOAD PRODUCTS WHEN FILTER CHANGES
+  // ========================================
+
+  useEffect(() => {
+    loadProducts();
+  }, [statusFilter]);
+
+  // ========================================
+  // HANDLE INPUT
   // ========================================
 
   const handleChange = (e) => {
@@ -259,6 +323,7 @@ function AdminProducts() {
       );
 
       e.target.value = "";
+
       return;
     }
 
@@ -274,6 +339,7 @@ function AdminProducts() {
       );
 
       e.target.value = "";
+
       return;
     }
 
@@ -281,7 +347,9 @@ function AdminProducts() {
       imagePreview &&
       imagePreview.startsWith("blob:")
     ) {
-      URL.revokeObjectURL(imagePreview);
+      URL.revokeObjectURL(
+        imagePreview
+      );
     }
 
     const preview =
@@ -293,7 +361,7 @@ function AdminProducts() {
   };
 
   // ========================================
-  // REMOVE SELECTED IMAGE
+  // REMOVE IMAGE
   // ========================================
 
   const removeSelectedImage = () => {
@@ -301,7 +369,9 @@ function AdminProducts() {
       imagePreview &&
       imagePreview.startsWith("blob:")
     ) {
-      URL.revokeObjectURL(imagePreview);
+      URL.revokeObjectURL(
+        imagePreview
+      );
     }
 
     setSelectedImage(null);
@@ -331,7 +401,9 @@ function AdminProducts() {
       imagePreview &&
       imagePreview.startsWith("blob:")
     ) {
-      URL.revokeObjectURL(imagePreview);
+      URL.revokeObjectURL(
+        imagePreview
+      );
     }
 
     setForm({
@@ -363,12 +435,15 @@ function AdminProducts() {
 
     setForm({
       name: product.name ?? "",
-      description: product.description ?? "",
+      description:
+        product.description ?? "",
       price: product.price ?? "",
       stock: product.stock ?? "",
       brand: product.brand ?? "",
-      imageUrl: product.imageUrl ?? "",
-      active: product.active !== false,
+      imageUrl:
+        product.imageUrl ?? "",
+      active:
+        product.active !== false,
       categoryId:
         product.categoryId ??
         product.category?.id ??
@@ -402,10 +477,6 @@ function AdminProducts() {
       setSaving(true);
       setError("");
 
-      // ====================================
-      // VALIDATION
-      // ====================================
-
       const productName =
         form.name.trim();
 
@@ -423,6 +494,10 @@ function AdminProducts() {
 
       const categoryId =
         Number(form.categoryId);
+
+      // ====================================
+      // VALIDATION
+      // ====================================
 
       if (!productName) {
         const errorMessage =
@@ -490,57 +565,87 @@ function AdminProducts() {
       }
 
       // ====================================
-      // UPDATE PRODUCT
+// UPDATE
+// ====================================
+
+if (editingId !== null) {
+
+  let imageUrl =
+    form.imageUrl.trim();
+
+  // ====================================
+  // UPLOAD NEW IMAGE IF SELECTED
+  // ====================================
+
+  if (selectedImage) {
+
+    const imageFormData =
+      new FormData();
+
+    imageFormData.append(
+      "image",
+      selectedImage
+    );
+
+    const imageResponse =
+      await api.post(
+        "/products/upload-image",
+        imageFormData
+      );
+
+    imageUrl =
+      imageResponse.data.fileName;
+  }
+
+  // ====================================
+  // UPDATE PRODUCT
+  // ====================================
+
+  const payload = {
+    name: productName,
+    description,
+    price,
+    stock,
+    brand,
+    imageUrl,
+    active:
+      Boolean(form.active),
+    categoryId,
+  };
+
+  await api.put(
+    `/products/${editingId}`,
+    payload
+  );
+
+  resetForm();
+
+  await loadProducts();
+
+  showToast(
+    "Product updated successfully!"
+  );
+
+  return;
+}
+
       // ====================================
-
-      if (editingId !== null) {
-        const payload = {
-          name: productName,
-          description: description,
-          price: price,
-          stock: stock,
-          brand: brand,
-          imageUrl: form.imageUrl.trim(),
-          active: Boolean(form.active),
-          categoryId: categoryId,
-        };
-
-        await api.put(
-          `/products/${editingId}`,
-          payload
-        );
-
-        resetForm();
-
-        await loadProducts();
-
-        showToast(
-          "Product updated successfully!"
-        );
-
-        return;
-      }
-
-      // ====================================
-      // CREATE PRODUCT WITH IMAGE
+      // CREATE
       // ====================================
 
       const productData = {
         name: productName,
-        description: description,
-        price: price,
-        stock: stock,
-        brand: brand,
-        active: Boolean(form.active),
-        categoryId: categoryId,
+        description,
+        price,
+        stock,
+        brand,
+        active:
+          Boolean(form.active),
+        categoryId,
       };
 
       const formData =
         new FormData();
-
-      // ------------------------------------
-      // PRODUCT JSON
-      // ------------------------------------
 
       const productBlob =
         new Blob(
@@ -555,10 +660,6 @@ function AdminProducts() {
         productBlob
       );
 
-      // ------------------------------------
-      // IMAGE
-      // ------------------------------------
-
       if (selectedImage) {
         formData.append(
           "image",
@@ -566,32 +667,10 @@ function AdminProducts() {
         );
       }
 
-      console.log(
-        "Creating product with multipart/form-data"
-      );
-
-      console.log(
-        "Product:",
-        productData
-      );
-
-      console.log(
-        "Image:",
-        selectedImage
-      );
-
-      // ------------------------------------
-      // CREATE REQUEST
-      // ------------------------------------
-
       await api.post(
         "/products",
         formData
       );
-
-      // ====================================
-      // SUCCESS
-      // ====================================
 
       resetForm();
 
@@ -605,16 +684,6 @@ function AdminProducts() {
       console.error(
         "Error saving product:",
         err
-      );
-
-      console.error(
-        "Status:",
-        err.response?.status
-      );
-
-      console.error(
-        "Response:",
-        err.response?.data
       );
 
       const errorMessage =
@@ -651,11 +720,28 @@ function AdminProducts() {
     }
 
     try {
+      /*
+       * Backend performs soft delete:
+       *
+       * active = false
+       */
+
       await api.delete(
         `/products/${productId}`
       );
 
-      await loadProducts();
+      /*
+       * Immediately remove the product
+       * from the current UI.
+       */
+
+      setProducts(
+        (previousProducts) =>
+          previousProducts.filter(
+            (product) =>
+              product.id !== productId
+          )
+      );
 
       showToast(
         "Product deleted successfully!"
@@ -681,7 +767,7 @@ function AdminProducts() {
   };
 
   // ========================================
-  // FILTER PRODUCTS
+  // FRONTEND FILTER
   // ========================================
 
   const filteredProducts =
@@ -747,11 +833,12 @@ function AdminProducts() {
   // UI
   // ========================================
 
-  const submitLabel = saving
-    ? "Saving..."
-    : editingId !== null
-    ? "Update Product"
-    : "Add Product";
+  const submitLabel =
+    saving
+      ? "Saving..."
+      : editingId !== null
+      ? "Update Product"
+      : "Add Product";
 
   return (
     <main className="admin-products-page">
@@ -795,9 +882,9 @@ function AdminProducts() {
 
         <div className="admin-products-count">
 
-          {products.length}{" "}
+          {filteredProducts.length}{" "}
 
-          {products.length === 1
+          {filteredProducts.length === 1
             ? "product"
             : "products"}
 
@@ -860,7 +947,7 @@ function AdminProducts() {
           onSubmit={handleSubmit}
         >
 
-          {/* PRODUCT NAME */}
+          {/* NAME */}
 
           <div className="admin-form-field">
 
@@ -874,7 +961,7 @@ function AdminProducts() {
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="e.g. Heineken"
+              placeholder="e.g. Coca Cola"
               required
             />
 
@@ -894,7 +981,7 @@ function AdminProducts() {
               name="brand"
               value={form.brand}
               onChange={handleChange}
-              placeholder="e.g. Heineken"
+              placeholder="e.g. Coca Cola"
               required
             />
 
@@ -1005,9 +1092,7 @@ function AdminProducts() {
 
           </div>
 
-          {/* ==================================
-              PRODUCT IMAGE
-          ================================== */}
+          {/* IMAGE */}
 
           <div className="admin-form-field">
 
@@ -1057,6 +1142,7 @@ function AdminProducts() {
                 {selectedImage
                   ? "Change Image"
                   : "Choose Image"}
+
               </label>
 
               <input
@@ -1127,7 +1213,7 @@ function AdminProducts() {
 
           </label>
 
-          {/* BUTTONS */}
+          {/* FORM ACTIONS */}
 
           <div className="admin-product-form-actions">
 
@@ -1136,9 +1222,7 @@ function AdminProducts() {
               className="admin-save-product-btn"
               disabled={saving}
             >
-
               {submitLabel}
-
             </button>
 
             {editingId !== null && (
@@ -1172,7 +1256,11 @@ function AdminProducts() {
             </p>
 
             <h2>
-              All Products
+              {statusFilter === "ALL"
+                ? "All Products"
+                : statusFilter === "ACTIVE"
+                ? "Active Products"
+                : "Inactive Products"}
             </h2>
 
           </div>
@@ -1215,18 +1303,18 @@ function AdminProducts() {
             </option>
 
             <option value="ACTIVE">
-              Active
+              Active Products
             </option>
 
             <option value="INACTIVE">
-              Inactive
+              Inactive Products
             </option>
 
           </select>
 
         </div>
 
-        {/* TABLE */}
+        {/* EMPTY */}
 
         {filteredProducts.length === 0 ? (
 
@@ -1240,9 +1328,13 @@ function AdminProducts() {
 
             <p>
 
-              {products.length === 0
-                ? "Add your first product above."
-                : "Try changing your search or filter."}
+              {search.trim()
+                ? "Try changing your search."
+                : statusFilter === "ALL"
+                ? "No products available."
+                : statusFilter === "ACTIVE"
+                ? "No active products available."
+                : "No inactive products available."}
 
             </p>
 
@@ -1371,11 +1463,9 @@ function AdminProducts() {
                               : "product-inactive"
                           }
                         >
-
                           {product.active
                             ? "Active"
                             : "Inactive"}
-
                         </span>
 
                       </td>

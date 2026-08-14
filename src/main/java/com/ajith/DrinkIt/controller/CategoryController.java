@@ -1,10 +1,12 @@
 package com.ajith.drinkit.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ajith.drinkit.entity.Category;
 import com.ajith.drinkit.service.CategoryService;
@@ -32,6 +34,24 @@ public class CategoryController {
         return new ResponseEntity<>(
                 categoryService.createCategory(category),
                 HttpStatus.CREATED);
+    }
+
+    // =========================
+    // UPLOAD CATEGORY IMAGE
+    // =========================
+
+    @PostMapping("/upload-image")
+    public ResponseEntity<Map<String, String>> uploadImage(
+            @RequestParam("image") MultipartFile image) {
+
+        String fileName = categoryService.uploadCategoryImage(image);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "fileName",
+                        fileName,
+                        "message",
+                        "Image uploaded successfully"));
     }
 
     // =========================

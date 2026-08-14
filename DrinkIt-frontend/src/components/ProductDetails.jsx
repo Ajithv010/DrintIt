@@ -49,6 +49,7 @@ function ProductDetails() {
 
   const handleAddToCart = async () => {
   try {
+    setAdding(true);
     const response = await api.post("/cart/items", {
       productId: product.id,
       quantity: quantity,
@@ -95,6 +96,8 @@ function ProductDetails() {
       err.response?.data?.message ||
       "Unable to add product to cart."
     );
+  } finally {
+    setAdding(false);
   }
 };
 
@@ -132,6 +135,7 @@ function ProductDetails() {
       {/* BACK BUTTON */}
 
       <button
+        type="button"
         className="back-btn"
         onClick={() => navigate("/")}
       >
@@ -164,6 +168,7 @@ function ProductDetails() {
               <div className="quantity-selector">
 
                 <button
+                  type="button"
                   onClick={() =>
                     setQuantity((q) =>
                       Math.max(1, q - 1)
@@ -179,6 +184,7 @@ function ProductDetails() {
                 </span>
 
                 <button
+                  type="button"
                   onClick={() =>
                     setQuantity((q) =>
                       Math.min(
@@ -195,6 +201,7 @@ function ProductDetails() {
               </div>
 
               <button
+                type="button"
                 className="details-cart-btn"
                 onClick={handleAddToCart}
                 disabled={adding}

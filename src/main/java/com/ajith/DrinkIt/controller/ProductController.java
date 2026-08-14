@@ -42,7 +42,8 @@ public class ProductController {
                 // Upload image if selected
                 if (image != null && !image.isEmpty()) {
 
-                        String fileName = productService.uploadProductImage(image);
+                        String fileName = productService.uploadProductImage(
+                                        image);
 
                         request.setImageUrl(fileName);
                 }
@@ -60,12 +61,15 @@ public class ProductController {
         public ResponseEntity<Map<String, String>> uploadImage(
                         @RequestParam("image") MultipartFile image) {
 
-                String fileName = productService.uploadProductImage(image);
+                String fileName = productService.uploadProductImage(
+                                image);
 
                 return ResponseEntity.ok(
                                 Map.of(
-                                                "fileName", fileName,
-                                                "message", "Image uploaded successfully"));
+                                                "fileName",
+                                                fileName,
+                                                "message",
+                                                "Image uploaded successfully"));
         }
 
         // ========================================
@@ -171,19 +175,21 @@ public class ProductController {
 
                 if ("ADMIN".equalsIgnoreCase(role)) {
 
-                        if (keyword == null
-                                        && categoryId == null
-                                        && minPrice == null
-                                        && maxPrice == null
-                                        && inStock == null
-                                        && active == null
-                                        && page == 0
-                                        && size == 10
-                                        && "name".equalsIgnoreCase(sortBy)
-                                        && "asc".equalsIgnoreCase(direction)) {
+                        /*
+                         * ADMIN PRODUCT BEHAVIOUR
+                         *
+                         * No active parameter:
+                         * Show active products.
+                         *
+                         * active=true:
+                         * Show active products.
+                         *
+                         * active=false:
+                         * Show inactive products.
+                         */
 
-                                return ResponseEntity.ok(
-                                                productService.getAllProducts());
+                        if (active == null) {
+                                active = true;
                         }
 
                         var result = productService.searchProducts(
@@ -208,6 +214,10 @@ public class ProductController {
                         return ResponseEntity.ok(response);
                 }
 
+                // ========================================
+                // UNKNOWN ROLE
+                // ========================================
+
                 return ResponseEntity
                                 .status(HttpStatus.FORBIDDEN)
                                 .build();
@@ -224,6 +234,10 @@ public class ProductController {
 
                 ProductResponse product = productService.getProductById(id);
 
+                // ========================================
+                // PUBLIC USER
+                // ========================================
+
                 if (authentication == null) {
 
                         if (!Boolean.TRUE.equals(
@@ -237,9 +251,17 @@ public class ProductController {
                         return ResponseEntity.ok(product);
                 }
 
+                // ========================================
+                // AUTHENTICATED USER
+                // ========================================
+
                 User user = (User) authentication.getPrincipal();
 
                 String role = user.getRole().getRoleName();
+
+                // ========================================
+                // CUSTOMER
+                // ========================================
 
                 if ("CUSTOMER".equalsIgnoreCase(role)
                                 && !Boolean.TRUE.equals(
@@ -249,6 +271,10 @@ public class ProductController {
                                         .notFound()
                                         .build();
                 }
+
+                // ========================================
+                // ADMIN
+                // ========================================
 
                 return ResponseEntity.ok(product);
         }

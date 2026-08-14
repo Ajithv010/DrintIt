@@ -80,6 +80,7 @@ function AdminOrderDetails() {
       <main className="admin-order-details-page">
 
         <button
+          type="button"
           className="admin-order-back"
           onClick={() =>
             navigate("/admin/orders")
@@ -161,6 +162,7 @@ function AdminOrderDetails() {
       {/* BACK */}
 
       <button
+        type="button"
         className="admin-order-back"
         onClick={() =>
           navigate("/admin/orders")

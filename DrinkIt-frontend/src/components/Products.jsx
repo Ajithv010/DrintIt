@@ -262,6 +262,10 @@ function Products() {
             ? "Drinks in this category"
             : "All Drinks";
 
+    const headingLabel = keyword
+        ? "SEARCH"
+        : "DRINKS";
+
     return (
         <main className="products-page">
 
@@ -274,9 +278,7 @@ function Products() {
                 <div>
 
                     <p className="products-label">
-                        {keyword
-                            ? "SEARCH"
-                            : "DRINKS"}
+                        {headingLabel}
                     </p>
 
                     <h1>
@@ -310,7 +312,7 @@ function Products() {
 
                     <div className="product-filter-field">
 
-                        <label>
+                        <label htmlFor="filter-min-price">
                             Min Price
                         </label>
 
@@ -319,6 +321,7 @@ function Products() {
                             <span>₹</span>
 
                             <input
+                                id="filter-min-price"
                                 type="number"
                                 min="0"
                                 placeholder="Minimum"
@@ -338,7 +341,7 @@ function Products() {
 
                     <div className="product-filter-field">
 
-                        <label>
+                        <label htmlFor="filter-max-price">
                             Max Price
                         </label>
 
@@ -347,6 +350,7 @@ function Products() {
                             <span>₹</span>
 
                             <input
+                                id="filter-max-price"
                                 type="number"
                                 min="0"
                                 placeholder="Maximum"
@@ -366,11 +370,12 @@ function Products() {
 
                     <div className="product-filter-field">
 
-                        <label>
+                        <label htmlFor="filter-in-stock">
                             Availability
                         </label>
 
                         <select
+                            id="filter-in-stock"
                             value={inStock}
                             onChange={(e) =>
                                 setInStock(
@@ -399,11 +404,12 @@ function Products() {
 
                     <div className="product-filter-field">
 
-                        <label>
+                        <label htmlFor="filter-sort-by">
                             Sort By
                         </label>
 
                         <select
+                            id="filter-sort-by"
                             value={sortBy}
                             onChange={(e) =>
                                 setSortBy(
@@ -432,11 +438,12 @@ function Products() {
 
                     <div className="product-filter-field">
 
-                        <label>
+                        <label htmlFor="filter-direction">
                             Order
                         </label>
 
                         <select
+                            id="filter-direction"
                             value={direction}
                             onChange={(e) =>
                                 setDirection(
@@ -597,6 +604,7 @@ function Products() {
                         </p>
 
                         <button
+                            type="button"
                             onClick={
                                 resetFilters
                             }
@@ -618,6 +626,7 @@ function Products() {
                     <div className="products-pagination">
 
                         <button
+                            type="button"
                             disabled={
                                 currentPage ===
                                 0
@@ -636,6 +645,7 @@ function Products() {
                             (page) => (
 
                                 <button
+                                    type="button"
                                     key={page}
                                     className={
                                         page ===
@@ -656,6 +666,7 @@ function Products() {
                         )}
 
                         <button
+                            type="button"
                             disabled={
                                 currentPage >=
                                 totalPages -

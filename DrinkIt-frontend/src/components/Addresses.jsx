@@ -414,6 +414,12 @@ function Addresses() {
   // PAGE
   // ========================================
 
+  const saveLabel = saving
+    ? "Saving..."
+    : editingId
+    ? "Update Address"
+    : "Save Address";
+
   return (
     <main className="addresses-page">
 
@@ -640,11 +646,7 @@ function Addresses() {
                 className="address-save-btn"
                 disabled={saving}
               >
-                {saving
-                  ? "Saving..."
-                  : editingId
-                    ? "Update Address"
-                    : "Save Address"}
+                {saveLabel}
               </button>
 
               <button

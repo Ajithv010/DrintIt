@@ -592,4 +592,45 @@
   .profile-logout-btn {
     width: 100%;
   }
+  /* ========================================
+   BACK BUTTON
+======================================== */
+
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    padding: 10px 16px;
+
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #111111;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .back-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .back-btn:hover {
+    background: #f5f5f5;
+    border-color: #bdbdbd;
+  }
+
+  .back-btn:active {
+    transform: translateY(1px);
+  }
 }
