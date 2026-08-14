@@ -1,9 +1,17 @@
+import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+
+import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function ProductCard({ product }) {
 
     const navigate = useNavigate();
+
+    const { showToast } = useToast();
+
+    const [adding, setAdding] = useState(false);
 
     // ========================================
     // IMAGE URL
@@ -39,17 +47,66 @@ function ProductCard({ product }) {
     // ADD TO CART
     // ========================================
 
-    const handleAddToCart = (event) => {
+    const handleAddToCart = async (event) => {
 
         event.stopPropagation();
 
-        // We will connect this to your existing
-        // cart functionality after the UI is finished.
+        if (adding) {
+            return;
+        }
 
-        console.log(
-            "Add to cart:",
-            product.name
-        );
+        try {
+
+            setAdding(true);
+
+            await api.post("/cart/items", {
+                productId: product.id,
+                quantity: 1,
+            });
+
+            // Update Navbar cart count
+            window.dispatchEvent(
+                new Event("cartUpdated")
+            );
+
+            // Success Toast
+            showToast(
+                `${product.name} added to cart!`
+            );
+
+        } catch (err) {
+
+            console.error(
+                "Error adding product to cart:",
+                err
+            );
+
+            // Handle unauthorized user
+            if (err.response?.status === 401) {
+
+                showToast(
+                    "Please login to add items to your cart.",
+                    "error"
+                );
+
+                return;
+            }
+
+            // Backend error message
+            const message =
+                err.response?.data?.message ||
+                "Unable to add product to cart.";
+
+            showToast(
+                message,
+                "error"
+            );
+
+        } finally {
+
+            setAdding(false);
+
+        }
     };
 
     // ========================================
@@ -100,9 +157,15 @@ function ProductCard({ product }) {
                         type="button"
                         className="add-btn"
                         onClick={handleAddToCart}
+                        disabled={adding}
                     >
                         <FiPlus size={15} />
-                        <span>Add</span>
+
+                        <span>
+                            {adding
+                                ? "Adding..."
+                                : "Add"}
+                        </span>
                     </button>
 
                 </div>

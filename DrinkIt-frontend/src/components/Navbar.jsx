@@ -7,10 +7,13 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-import { getCartCount } from "../services/cartStorage";
+import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Navbar() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [search, setSearch] = useState("");
   const [cartCount, setCartCount] = useState(0);
@@ -21,13 +24,51 @@ function Navbar() {
   // ========================================
 
   useEffect(() => {
-    const updateNavbar = () => {
-      setCartCount(getCartCount());
+
+    const updateNavbar = async () => {
 
       const token =
         localStorage.getItem("drinkit_token");
 
       setLoggedIn(Boolean(token));
+
+      // ========================================
+      // LOAD CART COUNT FROM BACKEND
+      // ========================================
+
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
+
+      try {
+
+        const response = await api.get("/cart");
+
+        const items =
+          response.data?.items || [];
+
+        const totalItems = items.reduce(
+          (total, item) =>
+            total + item.quantity,
+          0
+        );
+
+        setCartCount(totalItems);
+
+      } catch (err) {
+
+        console.error(
+          "Error loading cart count:",
+          err
+        );
+
+        // Don't show an error Toast here.
+        // Navbar should remain quiet if cart
+        // loading fails.
+
+        setCartCount(0);
+      }
     };
 
     updateNavbar();
@@ -43,6 +84,7 @@ function Navbar() {
     );
 
     return () => {
+
       window.removeEventListener(
         "cartUpdated",
         updateNavbar
@@ -52,7 +94,9 @@ function Navbar() {
         "authUpdated",
         updateNavbar
       );
+
     };
+
   }, []);
 
   // ========================================
@@ -60,12 +104,15 @@ function Navbar() {
   // ========================================
 
   const handleSearch = (e) => {
+
     e.preventDefault();
 
     const keyword = search.trim();
 
     if (!keyword) {
+
       navigate("/products");
+
       return;
     }
 
@@ -79,10 +126,23 @@ function Navbar() {
   // ========================================
 
   const handleLogout = () => {
-    localStorage.removeItem("drinkit_token");
+
+    localStorage.removeItem(
+      "drinkit_token"
+    );
+
+    localStorage.removeItem(
+      "drinkit_role"
+    );
+
+    setCartCount(0);
 
     window.dispatchEvent(
       new Event("authUpdated")
+    );
+
+    showToast(
+      "Logged out successfully!"
     );
 
     navigate("/");
@@ -101,7 +161,9 @@ function Navbar() {
 
         <div
           className="logo"
-          onClick={() => navigate("/home")}
+          onClick={() =>
+            navigate("/home")
+          }
         >
           Drink<span>It</span>
         </div>
@@ -112,6 +174,7 @@ function Navbar() {
           className="search-box"
           onSubmit={handleSearch}
         >
+
           <FiSearch />
 
           <input
@@ -122,6 +185,7 @@ function Navbar() {
               setSearch(e.target.value)
             }
           />
+
         </form>
 
         {/* ACTIONS */}
@@ -134,7 +198,9 @@ function Navbar() {
 
             <button
               className="login-btn"
-              onClick={() => navigate("/login")}
+              onClick={() =>
+                navigate("/login")
+              }
             >
               <FiUser />
               <span>Login</span>
@@ -145,9 +211,12 @@ function Navbar() {
             /* LOGGED IN */
 
             <>
+
               <button
                 className="login-btn"
-                onClick={() => navigate("/account")}
+                onClick={() =>
+                  navigate("/account")
+                }
               >
                 <FiUser />
                 <span>Account</span>
@@ -160,6 +229,7 @@ function Navbar() {
                 <FiLogOut />
                 <span>Logout</span>
               </button>
+
             </>
 
           )}
@@ -168,15 +238,21 @@ function Navbar() {
 
           <button
             className="cart-btn"
-            onClick={() => navigate("/cart")}
+            onClick={() =>
+              navigate("/cart")
+            }
           >
+
             <FiShoppingCart />
 
-            <span>Cart</span>
+            <span>
+              Cart
+            </span>
 
             <small>
               {cartCount}
             </small>
+
           </button>
 
         </div>

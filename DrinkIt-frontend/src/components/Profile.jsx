@@ -9,9 +9,12 @@ import {
 
 import "./Profile.css";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Profile() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +36,11 @@ function Profile() {
             new Event("authUpdated")
           );
 
+          showToast(
+            "Session expired. Please login again.",
+            "error"
+          );
+
           navigate("/login");
         }
       } finally {
@@ -41,7 +49,7 @@ function Profile() {
     };
 
     loadUser();
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   const logout = () => {
     localStorage.removeItem("drinkit_token");
@@ -49,6 +57,10 @@ function Profile() {
 
     window.dispatchEvent(
       new Event("authUpdated")
+    );
+
+    showToast(
+      "Logged out successfully!"
     );
 
     navigate("/");

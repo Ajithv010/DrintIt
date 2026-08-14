@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-
+import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 
 function Login() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     email: "",
@@ -41,23 +43,29 @@ function Login() {
       /*
        * Store token if backend returns one.
        */
-if (response.data?.token) {
-  localStorage.setItem(
-    "drinkit_token",
-    response.data.token
-  );
-}
+      if (response.data?.token) {
+        localStorage.setItem(
+          "drinkit_token",
+          response.data.token
+        );
+      }
 
-localStorage.setItem(
-  "drinkit_role",
-  "CUSTOMER"
-);
+      localStorage.setItem(
+        "drinkit_role",
+        "CUSTOMER"
+      );
 
-window.dispatchEvent(
-  new Event("authUpdated")
-);
+      window.dispatchEvent(
+        new Event("authUpdated")
+      );
 
-navigate("/home");
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast("Login successful!");
+
+      navigate("/home");
 
     } catch (err) {
       console.error(
@@ -65,10 +73,21 @@ navigate("/home");
         err
       );
 
-      setError(
+      const message =
         err.response?.data?.message ||
-          "Invalid email or password."
+        "Invalid email or password.";
+
+      setError(message);
+
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        message,
+        "error"
       );
+
     } finally {
       setLoading(false);
     }
@@ -117,16 +136,21 @@ navigate("/home");
             />
 
           </div>
-          <div className="login-register">
-  Don't have an account?
 
-  <button
-    type="button"
-    onClick={() => navigate("/register")}
-  >
-    Create account
-  </button>
-</div>
+          <div className="login-register">
+
+            Don't have an account?
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/register")
+              }
+            >
+              Create account
+            </button>
+
+          </div>
 
           <div className="login-field">
 

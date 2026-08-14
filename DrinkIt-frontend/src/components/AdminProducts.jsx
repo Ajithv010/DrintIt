@@ -11,12 +11,13 @@ import {
 } from "react-icons/fi";
 
 import { useNavigate } from "react-router-dom";
-
+import { useToast } from "../context/ToastContext";
 import api from "../services/api";
 import "./AdminProducts.css";
 
 function AdminProducts() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   // ========================================
   // EMPTY FORM
@@ -104,11 +105,20 @@ function AdminProducts() {
         setCategories([]);
       }
     } catch (err) {
-      console.error("Error loading categories:", err);
+      console.error(
+        "Error loading categories:",
+        err
+      );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to load categories."
+        "Unable to load categories.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     } finally {
       setCategoryLoading(false);
@@ -151,22 +161,39 @@ function AdminProducts() {
           new Event("authUpdated")
         );
 
+        showToast(
+          "Session expired. Please login again.",
+          "error"
+        );
+
         navigate("/admin/login");
 
         return;
       }
 
       if (err.response?.status === 403) {
-        setError(
-          "You do not have permission to manage products."
+        const errorMessage =
+          "You do not have permission to manage products.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
 
         return;
       }
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to load products."
+        "Unable to load products.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     } finally {
       setLoading(false);
@@ -221,8 +248,14 @@ function AdminProducts() {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setError(
-        "Only JPG, PNG and WEBP images are allowed."
+      const errorMessage =
+        "Only JPG, PNG and WEBP images are allowed.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
 
       e.target.value = "";
@@ -230,8 +263,14 @@ function AdminProducts() {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError(
-        "Image size must be less than 5 MB."
+      const errorMessage =
+        "Image size must be less than 5 MB.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
 
       e.target.value = "";
@@ -245,7 +284,8 @@ function AdminProducts() {
       URL.revokeObjectURL(imagePreview);
     }
 
-    const preview = URL.createObjectURL(file);
+    const preview =
+      URL.createObjectURL(file);
 
     setSelectedImage(file);
     setImagePreview(preview);
@@ -366,18 +406,35 @@ function AdminProducts() {
       // VALIDATION
       // ====================================
 
-      const productName = form.name.trim();
-      const description = form.description.trim();
-      const brand = form.brand.trim();
+      const productName =
+        form.name.trim();
 
-      const price = Number(form.price);
-      const stock = Number(form.stock);
-      const categoryId = Number(form.categoryId);
+      const description =
+        form.description.trim();
+
+      const brand =
+        form.brand.trim();
+
+      const price =
+        Number(form.price);
+
+      const stock =
+        Number(form.stock);
+
+      const categoryId =
+        Number(form.categoryId);
 
       if (!productName) {
-        setError(
-          "Product name is required."
+        const errorMessage =
+          "Product name is required.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
@@ -385,9 +442,16 @@ function AdminProducts() {
         Number.isNaN(price) ||
         price <= 0
       ) {
-        setError(
-          "Enter a valid product price."
+        const errorMessage =
+          "Enter a valid product price.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
@@ -395,9 +459,16 @@ function AdminProducts() {
         Number.isNaN(stock) ||
         stock < 0
       ) {
-        setError(
-          "Enter a valid stock quantity."
+        const errorMessage =
+          "Enter a valid stock quantity.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
@@ -405,9 +476,16 @@ function AdminProducts() {
         Number.isNaN(categoryId) ||
         categoryId <= 0
       ) {
-        setError(
-          "Please select a category."
+        const errorMessage =
+          "Please select a category.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
@@ -436,6 +514,10 @@ function AdminProducts() {
 
         await loadProducts();
 
+        showToast(
+          "Product updated successfully!"
+        );
+
         return;
       }
 
@@ -453,18 +535,20 @@ function AdminProducts() {
         categoryId: categoryId,
       };
 
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
       // ------------------------------------
       // PRODUCT JSON
       // ------------------------------------
 
-      const productBlob = new Blob(
-        [JSON.stringify(productData)],
-        {
-          type: "application/json",
-        }
-      );
+      const productBlob =
+        new Blob(
+          [JSON.stringify(productData)],
+          {
+            type: "application/json",
+          }
+        );
 
       formData.append(
         "product",
@@ -513,6 +597,10 @@ function AdminProducts() {
 
       await loadProducts();
 
+      showToast(
+        "Product added successfully!"
+      );
+
     } catch (err) {
       console.error(
         "Error saving product:",
@@ -529,11 +617,18 @@ function AdminProducts() {
         err.response?.data
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          err.response?.data ||
-          "Unable to save product."
+        err.response?.data ||
+        "Unable to save product.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
+
     } finally {
       setSaving(false);
     }
@@ -543,10 +638,13 @@ function AdminProducts() {
   // DELETE PRODUCT
   // ========================================
 
-  const handleDelete = async (productId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this product?"
-    );
+  const handleDelete = async (
+    productId
+  ) => {
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this product?"
+      );
 
     if (!confirmed) {
       return;
@@ -559,15 +657,25 @@ function AdminProducts() {
 
       await loadProducts();
 
+      showToast(
+        "Product deleted successfully!"
+      );
+
     } catch (err) {
       console.error(
         "Error deleting product:",
         err
       );
 
-      alert(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to delete product."
+        "Unable to delete product.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     }
   };
@@ -579,7 +687,9 @@ function AdminProducts() {
   const filteredProducts =
     products.filter((product) => {
       const keyword =
-        search.trim().toLowerCase();
+        search
+          .trim()
+          .toLowerCase();
 
       const productName =
         String(
@@ -593,8 +703,12 @@ function AdminProducts() {
 
       const matchesSearch =
         !keyword ||
-        productName.includes(keyword) ||
-        brand.includes(keyword);
+        productName.includes(
+          keyword
+        ) ||
+        brand.includes(
+          keyword
+        );
 
       const matchesStatus =
         statusFilter === "ALL" ||
@@ -620,9 +734,11 @@ function AdminProducts() {
   if (loading) {
     return (
       <main className="admin-products-page">
+
         <p>
           Loading products...
         </p>
+
       </main>
     );
   }
@@ -630,6 +746,12 @@ function AdminProducts() {
   // ========================================
   // UI
   // ========================================
+
+  const submitLabel = saving
+    ? "Saving..."
+    : editingId !== null
+    ? "Update Product"
+    : "Add Product";
 
   return (
     <main className="admin-products-page">
@@ -1015,11 +1137,7 @@ function AdminProducts() {
               disabled={saving}
             >
 
-              {saving
-                ? "Saving..."
-                : editingId !== null
-                ? "Update Product"
-                : "Add Product"}
+              {submitLabel}
 
             </button>
 

@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 
 import "./Register.css";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Register() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     firstName: "",
@@ -50,6 +53,14 @@ function Register() {
         "Account created successfully. Please login."
       );
 
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast(
+        "Account created successfully!"
+      );
+
       setTimeout(() => {
         navigate("/login");
       }, 1200);
@@ -63,16 +74,28 @@ function Register() {
       const validationErrors =
         err.response?.data?.errors;
 
+      let errorMessage;
+
       if (validationErrors) {
-        setError(
-          Object.values(validationErrors).join(" ")
-        );
+        errorMessage =
+          Object.values(validationErrors).join(" ");
       } else {
-        setError(
+        errorMessage =
           err.response?.data?.message ||
-            "Unable to create account."
-        );
+          "Unable to create account.";
       }
+
+      setError(errorMessage);
+
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        errorMessage,
+        "error"
+      );
+
     } finally {
       setLoading(false);
     }

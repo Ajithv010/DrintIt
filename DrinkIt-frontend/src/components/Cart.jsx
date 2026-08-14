@@ -8,9 +8,12 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
 import { saveCart } from "../services/cartStorage";
+import { useToast } from "../context/ToastContext";
 
 function Cart() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -109,8 +112,9 @@ function Cart() {
         err
       );
 
-      alert(
-        "Unable to update quantity."
+      showToast(
+        "Unable to update quantity.",
+        "error"
       );
     }
   };
@@ -129,14 +133,27 @@ function Cart() {
 
       await loadCart();
 
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast(
+        "Item removed from cart."
+      );
+
     } catch (err) {
       console.error(
         "Error removing item:",
         err
       );
 
-      alert(
-        "Unable to remove item."
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        "Unable to remove item.",
+        "error"
       );
     }
   };
@@ -151,14 +168,27 @@ function Cart() {
 
       await loadCart();
 
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast(
+        "Cart cleared successfully."
+      );
+
     } catch (err) {
       console.error(
         "Error clearing cart:",
         err
       );
 
-      alert(
-        "Unable to clear cart."
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        "Unable to clear cart.",
+        "error"
       );
     }
   };

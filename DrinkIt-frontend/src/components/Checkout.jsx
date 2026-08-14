@@ -4,9 +4,12 @@ import { FiArrowLeft } from "react-icons/fi";
 
 import "./Checkout.css";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Checkout() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,7 @@ function Checkout() {
         const response = await api.get("/cart");
 
         setCart(response.data);
+
       } catch (err) {
         console.error(
           "Error loading checkout cart:",
@@ -39,18 +43,33 @@ function Checkout() {
         );
 
         if (err.response?.status === 401) {
+
+          showToast(
+            "Please login to continue.",
+            "error"
+          );
+
           navigate("/login");
           return;
         }
 
-        setError("Unable to load your cart.");
+        const message =
+          "Unable to load your cart.";
+
+        setError(message);
+
+        showToast(
+          message,
+          "error"
+        );
+
       } finally {
         setLoading(false);
       }
     };
 
     loadCart();
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   // ========================================
   // HANDLE INPUT
@@ -122,6 +141,14 @@ function Checkout() {
         );
       }
 
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast(
+        "Order placed successfully!"
+      );
+
       // ------------------------------------
       // STEP 3: GO TO ORDER SUCCESS
       // ------------------------------------
@@ -141,19 +168,30 @@ function Checkout() {
       const validationErrors =
         err.response?.data?.errors;
 
+      let errorMessage;
+
       if (validationErrors) {
-        setError(
+        errorMessage =
           Object.values(
             validationErrors
-          ).join(" ")
-        );
+          ).join(" ");
       } else {
-        setError(
+        errorMessage =
           err.response?.data?.message ||
-            err.message ||
-            "Unable to place order."
-        );
+          err.message ||
+          "Unable to place order.";
       }
+
+      setError(errorMessage);
+
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        errorMessage,
+        "error"
+      );
 
       setPlacingOrder(false);
     }
@@ -166,7 +204,11 @@ function Checkout() {
   if (loading) {
     return (
       <main className="checkout-page">
-        <p>Loading checkout...</p>
+
+        <p>
+          Loading checkout...
+        </p>
+
       </main>
     );
   }
@@ -182,7 +224,9 @@ function Checkout() {
         <button
           type="button"
           className="back-btn"
-          onClick={() => navigate("/cart")}
+          onClick={() =>
+            navigate("/cart")
+          }
         >
           <FiArrowLeft />
           Back to Cart
@@ -190,12 +234,16 @@ function Checkout() {
 
         <div className="empty-cart">
 
-          <h2>{error}</h2>
+          <h2>
+            {error}
+          </h2>
 
           <button
             type="button"
             className="shop-btn"
-            onClick={() => navigate("/cart")}
+            onClick={() =>
+              navigate("/cart")
+            }
           >
             Back to Cart
           </button>
@@ -230,7 +278,9 @@ function Checkout() {
         <button
           type="button"
           className="back-btn"
-          onClick={() => navigate("/")}
+          onClick={() =>
+            navigate("/")
+          }
         >
           <FiArrowLeft />
           Continue Shopping
@@ -250,7 +300,9 @@ function Checkout() {
           <button
             type="button"
             className="shop-btn"
-            onClick={() => navigate("/")}
+            onClick={() =>
+              navigate("/")
+            }
           >
             Start Shopping
           </button>
@@ -273,7 +325,9 @@ function Checkout() {
       <button
         type="button"
         className="back-btn"
-        onClick={() => navigate("/cart")}
+        onClick={() =>
+          navigate("/cart")
+        }
       >
         <FiArrowLeft />
         Back to Cart
@@ -311,11 +365,12 @@ function Checkout() {
 
             <div className="checkout-field">
 
-              <label>
+              <label htmlFor="checkout-fullName">
                 Full Name
               </label>
 
               <input
+                id="checkout-fullName"
                 type="text"
                 name="fullName"
                 placeholder="Enter your full name"
@@ -330,11 +385,12 @@ function Checkout() {
 
             <div className="checkout-field">
 
-              <label>
+              <label htmlFor="checkout-phoneNumber">
                 Phone Number
               </label>
 
               <input
+                id="checkout-phoneNumber"
                 type="tel"
                 name="phoneNumber"
                 placeholder="Enter 10-digit phone number"
@@ -351,11 +407,12 @@ function Checkout() {
 
             <div className="checkout-field">
 
-              <label>
+              <label htmlFor="checkout-addressLine">
                 Address
               </label>
 
               <textarea
+                id="checkout-addressLine"
                 name="addressLine"
                 placeholder="House number, street, area..."
                 value={address.addressLine}
@@ -372,11 +429,12 @@ function Checkout() {
 
               <div className="checkout-field">
 
-                <label>
+                <label htmlFor="checkout-city">
                   City
                 </label>
 
                 <input
+                  id="checkout-city"
                   type="text"
                   name="city"
                   placeholder="City"
@@ -389,11 +447,12 @@ function Checkout() {
 
               <div className="checkout-field">
 
-                <label>
+                <label htmlFor="checkout-state">
                   State
                 </label>
 
                 <input
+                  id="checkout-state"
                   type="text"
                   name="state"
                   placeholder="State"
@@ -410,11 +469,12 @@ function Checkout() {
 
             <div className="checkout-field">
 
-              <label>
+              <label htmlFor="checkout-pincode">
                 Pincode
               </label>
 
               <input
+                id="checkout-pincode"
                 type="text"
                 name="pincode"
                 placeholder="6-digit pincode"

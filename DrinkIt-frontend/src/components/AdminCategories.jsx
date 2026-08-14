@@ -9,10 +9,12 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 import "./AdminCategories.css";
 
 function AdminCategories() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const emptyForm = {
     name: "",
@@ -61,20 +63,46 @@ function AdminCategories() {
       );
 
       if (err.response?.status === 401) {
+        localStorage.removeItem("drinkit_token");
+        localStorage.removeItem("drinkit_role");
+
+        window.dispatchEvent(
+          new Event("authUpdated")
+        );
+
+        showToast(
+          "Session expired. Please login again.",
+          "error"
+        );
+
         navigate("/admin/login");
+
         return;
       }
 
       if (err.response?.status === 403) {
-        setError(
-          "You do not have permission to manage categories."
+        const errorMessage =
+          "You do not have permission to manage categories.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to load categories."
+        "Unable to load categories.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     } finally {
       setLoading(false);
@@ -115,7 +143,10 @@ function AdminCategories() {
   // ========================================
 
   const resetForm = () => {
-    setForm({ ...emptyForm });
+    setForm({
+      ...emptyForm,
+    });
+
     setEditingId(null);
     setError("");
   };
@@ -157,15 +188,28 @@ function AdminCategories() {
       setError("");
 
       const name = form.name.trim();
+
       const description =
         form.description.trim();
+
       const imageUrl =
         form.imageUrl.trim();
 
+      // ====================================
+      // VALIDATION
+      // ====================================
+
       if (!name) {
-        setError(
-          "Category name is required."
+        const errorMessage =
+          "Category name is required.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
         return;
       }
 
@@ -181,21 +225,48 @@ function AdminCategories() {
         payload
       );
 
-      if (editingId !== null) {
+      // ====================================
+      // UPDATE
+      // ====================================
+
+      const wasEditing =
+        editingId !== null;
+
+      if (wasEditing) {
         await api.put(
           `/categories/${editingId}`,
           payload
         );
-      } else {
+      }
+
+      // ====================================
+      // CREATE
+      // ====================================
+
+      else {
         await api.post(
           "/categories",
           payload
         );
       }
 
+      // ====================================
+      // RESET + RELOAD
+      // ====================================
+
       resetForm();
 
       await loadCategories();
+
+      // ====================================
+      // SUCCESS TOAST
+      // ====================================
+
+      showToast(
+        wasEditing
+          ? "Category updated successfully!"
+          : "Category added successfully!"
+      );
 
     } catch (err) {
       console.error(
@@ -203,9 +274,15 @@ function AdminCategories() {
         err
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to save category."
+        "Unable to save category.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     } finally {
       setSaving(false);
@@ -216,7 +293,9 @@ function AdminCategories() {
   // DELETE
   // ========================================
 
-  const handleDelete = async (categoryId) => {
+  const handleDelete = async (
+    categoryId
+  ) => {
     const confirmed =
       window.confirm(
         "Are you sure you want to delete this category?"
@@ -235,15 +314,25 @@ function AdminCategories() {
 
       await loadCategories();
 
+      showToast(
+        "Category deleted successfully!"
+      );
+
     } catch (err) {
       console.error(
         "Error deleting category:",
         err
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to delete category. It may contain products."
+        "Unable to delete category. It may contain products.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
     }
   };
@@ -256,7 +345,9 @@ function AdminCategories() {
     categories.filter(
       (category) => {
         const keyword =
-          search.trim().toLowerCase();
+          search
+            .trim()
+            .toLowerCase();
 
         if (!keyword) {
           return true;
@@ -286,9 +377,11 @@ function AdminCategories() {
   if (loading) {
     return (
       <main className="admin-categories-page">
+
         <p>
           Loading categories...
         </p>
+
       </main>
     );
   }
@@ -338,10 +431,13 @@ function AdminCategories() {
         </div>
 
         <strong className="admin-categories-count">
+
           {categories.length}{" "}
+
           {categories.length === 1
             ? "category"
             : "categories"}
+
         </strong>
 
       </header>
@@ -367,15 +463,19 @@ function AdminCategories() {
           <div>
 
             <p className="admin-categories-label">
+
               {editingId !== null
                 ? "EDIT CATEGORY"
                 : "NEW CATEGORY"}
+
             </p>
 
             <h2>
+
               {editingId !== null
                 ? "Update Category"
                 : "Add Category"}
+
             </h2>
 
           </div>
@@ -478,6 +578,7 @@ function AdminCategories() {
               className="admin-category-save"
               disabled={saving}
             >
+
               <FiPlus />
 
               {saving
@@ -485,6 +586,7 @@ function AdminCategories() {
                 : editingId !== null
                 ? "Update Category"
                 : "Add Category"}
+
             </button>
 
             {editingId !== null && (
@@ -549,15 +651,19 @@ function AdminCategories() {
             <FiLayers />
 
             <h2>
+
               {search
                 ? "No categories found"
                 : "No categories yet"}
+
             </h2>
 
             <p>
+
               {search
                 ? "Try a different search."
                 : "Create your first category above."}
+
             </p>
 
           </div>
@@ -676,9 +782,11 @@ function AdminCategories() {
                                 : "category-inactive"
                             }
                           >
+
                             {category.active
                               ? "Active"
                               : "Inactive"}
+
                           </span>
 
                         </td>

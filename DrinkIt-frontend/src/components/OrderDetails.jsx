@@ -7,10 +7,13 @@ import {
 
 import api from "../services/api";
 import "./OrderDetails.css";
+import { useToast } from "../context/ToastContext";
 
 function OrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,7 @@ function OrderDetails() {
         );
 
         setOrder(response.data);
+
       } catch (err) {
         console.error(
           "Error loading order:",
@@ -39,36 +43,66 @@ function OrderDetails() {
         );
 
         if (err.response?.status === 401) {
+
+          localStorage.removeItem(
+            "drinkit_token"
+          );
+
+          localStorage.removeItem(
+            "drinkit_role"
+          );
+
+          window.dispatchEvent(
+            new Event("authUpdated")
+          );
+
+          showToast(
+            "Session expired. Please login again.",
+            "error"
+          );
+
           navigate("/login");
+
           return;
         }
 
-        setError(
+        const errorMessage =
           err.response?.data?.message ||
-            "Unable to load order."
+          "Unable to load order.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
+
       } finally {
         setLoading(false);
       }
     };
 
     loadOrder();
-  }, [id, navigate]);
+
+  }, [id, navigate, showToast]);
 
   // ========================================
   // CANCEL ORDER
   // ========================================
 
   const handleCancelOrder = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this order?"
-    );
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to cancel this order?"
+      );
 
     if (!confirmed) {
       return;
     }
 
     try {
+
       setCancelling(true);
       setError("");
 
@@ -78,20 +112,40 @@ function OrderDetails() {
 
       setOrder(response.data);
 
-      alert("Order cancelled successfully.");
+      // ========================================
+      // SUCCESS TOAST
+      // ========================================
+
+      showToast(
+        "Order cancelled successfully!"
+      );
 
     } catch (err) {
+
       console.error(
         "Error cancelling order:",
         err
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to cancel order."
+        "Unable to cancel order.";
+
+      setError(errorMessage);
+
+      // ========================================
+      // ERROR TOAST
+      // ========================================
+
+      showToast(
+        errorMessage,
+        "error"
       );
+
     } finally {
+
       setCancelling(false);
+
     }
   };
 
@@ -102,7 +156,11 @@ function OrderDetails() {
   if (loading) {
     return (
       <main className="order-details-page">
-        <p>Loading order...</p>
+
+        <p>
+          Loading order...
+        </p>
+
       </main>
     );
   }
@@ -117,16 +175,20 @@ function OrderDetails() {
 
         <button
           className="back-btn"
-          onClick={() => navigate("/orders")}
+          onClick={() =>
+            navigate("/orders")
+          }
         >
           <FiArrowLeft />
           Back to Orders
         </button>
 
         <div className="order-details-error">
+
           <h2>
             {error || "Order not found."}
           </h2>
+
         </div>
 
       </main>
@@ -166,7 +228,9 @@ function OrderDetails() {
 
       <button
         className="back-btn"
-        onClick={() => navigate("/orders")}
+        onClick={() =>
+          navigate("/orders")
+        }
       >
         <FiArrowLeft />
         Back to Orders
@@ -287,6 +351,7 @@ function OrderDetails() {
               )}
 
             </div>
+
           )}
 
         </section>

@@ -310,6 +310,7 @@ function AdminUsers() {
       <main className="admin-users-page">
 
         <button
+          type="button"
           className="admin-users-back"
           onClick={() =>
             navigate("/admin")
@@ -328,6 +329,7 @@ function AdminUsers() {
           </h2>
 
           <button
+            type="button"
             onClick={() =>
               window.location.reload()
             }
@@ -353,6 +355,7 @@ function AdminUsers() {
       ==================================== */}
 
       <button
+        type="button"
         className="admin-users-back"
         onClick={() =>
           navigate("/admin")

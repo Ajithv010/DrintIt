@@ -5,6 +5,7 @@ import {
     Route,
     useNavigate,
 } from "react-router-dom";
+
 import Addresses from "./components/Addresses";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -19,8 +20,8 @@ import Profile from "./components/Profile";
 import Products from "./components/Products";
 import Checkout from "./components/Checkout";
 import OrderSuccess from "./components/OrderSuccess";
+
 import AdminOrders from "./components/AdminOrders";
-import { getProducts } from "./services/productService";
 import AdminLogin from "./components/AdminLogin";
 import AdminRoute from "./components/AdminRoute";
 import RoleSelection from "./components/RoleSelection";
@@ -30,9 +31,12 @@ import AdminUsers from "./components/AdminUsers";
 import AdminCategories from "./components/AdminCategories";
 import AdminOrderDetails from "./components/AdminOrderDetails";
 
+import { getProducts } from "./services/productService";
+
+import { ToastProvider } from "./context/ToastContext";
 
 
-
+// ========================================
 // HOME PAGE
 // ========================================
 
@@ -318,6 +322,7 @@ function Home() {
     );
 }
 
+
 // ========================================
 // MAIN APP
 // ========================================
@@ -326,145 +331,158 @@ function App() {
 
     return (
 
-        <BrowserRouter>
+        <ToastProvider>
 
-            <Navbar />
+            <BrowserRouter>
 
-            <Routes>
+                <Navbar />
 
-                {/* HOME */}
+                <Routes>
 
-              <Route
-  path="/"
-  element={<RoleSelection />}
-/>
+                    {/* HOME */}
 
-<Route
-  path="/home"
-  element={<Home />}
-/>
+                    <Route
+                        path="/"
+                        element={<RoleSelection />}
+                    />
 
-                {/* PRODUCTS */}
+                    <Route
+                        path="/home"
+                        element={<Home />}
+                    />
 
-                <Route
-                    path="/products"
-                    element={<Products />}
-                />
+                    {/* PRODUCTS */}
 
-                {/* PRODUCT DETAILS */}
+                    <Route
+                        path="/products"
+                        element={<Products />}
+                    />
 
-                <Route
-                    path="/products/:id"
-                    element={<ProductDetails />}
-                />
+                    {/* PRODUCT DETAILS */}
 
-                {/* CART */}
+                    <Route
+                        path="/products/:id"
+                        element={<ProductDetails />}
+                    />
 
-                <Route
-                    path="/cart"
-                    element={<Cart />}
-                />
+                    {/* CART */}
 
-                {/* LOGIN */}
+                    <Route
+                        path="/cart"
+                        element={<Cart />}
+                    />
 
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+                    {/* LOGIN */}
 
-                {/* REGISTER */}
+                    <Route
+                        path="/login"
+                        element={<Login />}
+                    />
 
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
+                    {/* REGISTER */}
 
-                {/* CHECKOUT */}
+                    <Route
+                        path="/register"
+                        element={<Register />}
+                    />
 
-                <Route
-                    path="/checkout"
-                    element={<Checkout />}
-                />
+                    {/* CHECKOUT */}
 
-                {/* ORDER SUCCESS */}
+                    <Route
+                        path="/checkout"
+                        element={<Checkout />}
+                    />
 
-                <Route
-                    path="/order-success"
-                    element={<OrderSuccess />}
-                />
+                    {/* ORDER SUCCESS */}
 
-                {/* ACCOUNT */}
+                    <Route
+                        path="/order-success"
+                        element={<OrderSuccess />}
+                    />
 
-                <Route
-                    path="/account"
-                    element={<Profile />}
-                />
-                <Route
-    path="/addresses"
-    element={<Addresses />}
-/>
+                    {/* ACCOUNT */}
 
-                {/* ORDERS */}
+                    <Route
+                        path="/account"
+                        element={<Profile />}
+                    />
 
-                <Route
-                    path="/orders"
-                    element={<Orders />}
-                />
+                    {/* ADDRESSES */}
 
-                {/* ORDER DETAILS */}
+                    <Route
+                        path="/addresses"
+                        element={<Addresses />}
+                    />
 
-                <Route
-                    path="/orders/:id"
-                    element={<OrderDetails />}
-                />
-  <Route
-  path="/admin/login"
-  element={<AdminLogin />}
-/>
+                    {/* ORDERS */}
 
-<Route
-  path="/start"
-  element={<RoleSelection />}
-/>
+                    <Route
+                        path="/orders"
+                        element={<Orders />}
+                    />
 
-<Route element={<AdminRoute />}>
+                    {/* ORDER DETAILS */}
 
-  <Route
-    path="/admin"
-    element={<AdminDashboard />}
-  />
+                    <Route
+                        path="/orders/:id"
+                        element={<OrderDetails />}
+                    />
 
-  <Route
-    path="/admin/orders"
-    element={<AdminOrders />}
-  />
+                    {/* ADMIN LOGIN */}
 
-  <Route
-    path="/admin/orders/:orderId"
-    element={<AdminOrderDetails />}
-  />
+                    <Route
+                        path="/admin/login"
+                        element={<AdminLogin />}
+                    />
 
-  <Route
-    path="/admin/products"
-    element={<AdminProducts />}
-  />
+                    {/* START */}
 
-  <Route
-    path="/admin/categories"
-    element={<AdminCategories />}
-  />
+                    <Route
+                        path="/start"
+                        element={<RoleSelection />}
+                    />
 
-  <Route
-    path="/admin/users"
-    element={<AdminUsers />}
-  />
-  
+                    {/* PROTECTED ADMIN ROUTES */}
 
-</Route>
+                    <Route element={<AdminRoute />}>
 
-            </Routes>
+                        <Route
+                            path="/admin"
+                            element={<AdminDashboard />}
+                        />
 
-        </BrowserRouter>
+                        <Route
+                            path="/admin/orders"
+                            element={<AdminOrders />}
+                        />
+
+                        <Route
+                            path="/admin/orders/:orderId"
+                            element={<AdminOrderDetails />}
+                        />
+
+                        <Route
+                            path="/admin/products"
+                            element={<AdminProducts />}
+                        />
+
+                        <Route
+                            path="/admin/categories"
+                            element={<AdminCategories />}
+                        />
+
+                        <Route
+                            path="/admin/users"
+                            element={<AdminUsers />}
+                        />
+
+                    </Route>
+
+                </Routes>
+
+            </BrowserRouter>
+
+        </ToastProvider>
     );
 }
 

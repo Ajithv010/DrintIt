@@ -11,9 +11,12 @@ import {
 
 import "./Addresses.css";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Addresses() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,12 +70,27 @@ function Addresses() {
           "drinkit_role"
         );
 
+        window.dispatchEvent(
+          new Event("authUpdated")
+        );
+
+        showToast(
+          "Session expired. Please login again.",
+          "error"
+        );
+
         navigate("/login");
         return;
       }
 
-      setError(
-        "Unable to load your addresses."
+      const errorMessage =
+        "Unable to load your addresses.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
 
     } finally {
@@ -208,6 +226,12 @@ function Addresses() {
 
     if (validationError) {
       setError(validationError);
+
+      showToast(
+        validationError,
+        "error"
+      );
+
       return;
     }
 
@@ -260,6 +284,11 @@ function Addresses() {
         setMessage(
           "Address updated successfully."
         );
+
+        showToast(
+          "Address updated successfully!"
+        );
+
       } else {
         setAddresses((previous) => [
           ...previous,
@@ -268,6 +297,10 @@ function Addresses() {
 
         setMessage(
           "Address added successfully."
+        );
+
+        showToast(
+          "Address added successfully!"
         );
       }
 
@@ -279,9 +312,15 @@ function Addresses() {
         err
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to save address."
+        "Unable to save address.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
 
     } finally {
@@ -323,15 +362,25 @@ function Addresses() {
         "Address deleted successfully."
       );
 
+      showToast(
+        "Address deleted successfully!"
+      );
+
     } catch (err) {
       console.error(
         "Delete address error:",
         err
       );
 
-      setError(
+      const errorMessage =
         err.response?.data?.message ||
-          "Unable to delete address."
+        "Unable to delete address.";
+
+      setError(errorMessage);
+
+      showToast(
+        errorMessage,
+        "error"
       );
 
     } finally {

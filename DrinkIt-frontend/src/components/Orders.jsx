@@ -4,9 +4,12 @@ import { FiArrowLeft, FiPackage } from "react-icons/fi";
 
 import "./Orders.css";
 import api from "../services/api";
+import { useToast } from "../context/ToastContext";
 
 function Orders() {
   const navigate = useNavigate();
+
+  const { showToast } = useToast();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,13 +55,24 @@ function Orders() {
             new Event("authUpdated")
           );
 
+          showToast(
+            "Session expired. Please login again.",
+            "error"
+          );
+
           navigate("/login");
           return;
         }
 
-        setError(
+        const errorMessage =
           err.response?.data?.message ||
-            "Unable to load your orders."
+          "Unable to load your orders.";
+
+        setError(errorMessage);
+
+        showToast(
+          errorMessage,
+          "error"
         );
 
       } finally {
@@ -67,7 +81,7 @@ function Orders() {
     };
 
     loadOrders();
-  }, [navigate]);
+  }, [navigate, showToast]);
 
   // ========================================
   // LOADING
