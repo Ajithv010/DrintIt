@@ -16,10 +16,42 @@ public class OrderMapper {
 
     public static OrderResponse toResponse(Order order) {
 
+        // =========================
+        // ORDER ITEMS
+        // =========================
+
         List<OrderItemResponse> items = order.getItems()
                 .stream()
                 .map(OrderMapper::toItemResponse)
                 .toList();
+
+        // =========================
+        // CUSTOMER
+        // =========================
+
+        String customerName = null;
+        String customerEmail = null;
+        String customerPhone = null;
+
+        if (order.getUser() != null) {
+
+            customerName = ((order.getUser().getFirstName() != null
+                    ? order.getUser().getFirstName()
+                    : "")
+                    + " "
+                    + (order.getUser().getLastName() != null
+                            ? order.getUser().getLastName()
+                            : ""))
+                    .trim();
+
+            customerEmail = order.getUser().getEmail();
+
+            customerPhone = order.getUser().getPhoneNumber();
+        }
+
+        // =========================
+        // DELIVERY ADDRESS
+        // =========================
 
         AddressResponse address = null;
 
@@ -35,14 +67,29 @@ public class OrderMapper {
                     order.getDeliveryAddress().getPincode());
         }
 
+        // =========================
+        // RESPONSE
+        // =========================
+
         return new OrderResponse(
                 order.getId(),
                 order.getCreatedAt(),
                 order.getStatus().name(),
+
+                customerName,
+                customerEmail,
+                customerPhone,
+
                 items,
+
                 order.getTotalAmount(),
+
                 address);
     }
+
+    // =========================
+    // ORDER ITEM → RESPONSE
+    // =========================
 
     private static OrderItemResponse toItemResponse(
             OrderItem item) {

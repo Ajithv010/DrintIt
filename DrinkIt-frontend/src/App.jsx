@@ -32,6 +32,7 @@ import AdminCategories from "./components/AdminCategories";
 import AdminOrderDetails from "./components/AdminOrderDetails";
 
 import { getProducts } from "./services/productService";
+import api from "./services/api";
 
 import { ToastProvider } from "./context/ToastContext";
 
@@ -45,63 +46,94 @@ function Home() {
     const navigate = useNavigate();
 
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+
+    const [categories, setCategories] =
+        useState([]);
+
+    const [loading, setLoading] =
+        useState(true);
+
+    const [categoryLoading, setCategoryLoading] =
+        useState(true);
+
+    const [error, setError] =
+        useState("");
+
 
     // ========================================
-    // CATEGORIES
+    // LOAD CATEGORIES
     // ========================================
 
-    const categories = [
-        {
-            id: 1,
-            name: "Juices",
-            image:
-                "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 2,
-            name: "Soft Drinks",
-            image:
-                "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 3,
-            name: "Energy Drinks",
-            image:
-                "https://images.unsplash.com/photo-1622543925917-763c34d1a86e?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 4,
-            name: "Water",
-            image:
-                "https://images.unsplash.com/photo-1564419320461-6870880221ad?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 5,
-            name: "Milkshakes",
-            image:
-                "https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 6,
-            name: "Cold Coffee",
-            image:
-                "https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 7,
-            name: "Lemonades & Coolers",
-            image:
-                "https://images.unsplash.com/photo-1523677011781-c91d1bbe2f9e?auto=format&fit=crop&w=900&q=80",
-        },
-        {
-            id: 8,
-            name: "Sports Drinks",
-            image:
-                "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=900&q=80",
-        },
-    ];
+    useEffect(() => {
+
+        const loadCategories = async () => {
+
+            try {
+
+                setCategoryLoading(true);
+
+                const response =
+                    await api.get("/categories");
+
+                const data =
+                    response.data;
+
+                let categoryList = [];
+
+                if (Array.isArray(data)) {
+
+                    categoryList = data;
+
+                } else if (
+                    Array.isArray(data?.content)
+                ) {
+
+                    categoryList =
+                        data.content;
+
+                } else if (
+                    Array.isArray(data?.categories)
+                ) {
+
+                    categoryList =
+                        data.categories;
+
+                }
+
+                // ====================================
+                // CUSTOMER ONLY SEES ACTIVE CATEGORIES
+                // ====================================
+
+                const activeCategories =
+                    categoryList.filter(
+                        (category) =>
+                            category.active !== false
+                    );
+
+                setCategories(
+                    activeCategories
+                );
+
+            } catch (err) {
+
+                console.error(
+                    "Error loading categories:",
+                    err
+                );
+
+                setCategories([]);
+
+            } finally {
+
+                setCategoryLoading(false);
+
+            }
+        };
+
+        loadCategories();
+
+    }, []);
+
 
     // ========================================
     // LOAD PRODUCTS
@@ -116,12 +148,15 @@ function Home() {
                 setLoading(true);
                 setError("");
 
-                const data = await getProducts({
-                    page: 0,
-                    size: 8,
-                });
+                const data =
+                    await getProducts({
+                        page: 0,
+                        size: 8,
+                    });
 
-                setProducts(data.content || []);
+                setProducts(
+                    data.content || []
+                );
 
             } catch (err) {
 
@@ -145,12 +180,15 @@ function Home() {
 
     }, []);
 
+
     // ========================================
     // HOME UI
     // ========================================
 
     return (
+
         <main>
+
 
             {/* ========================================
                 HERO
@@ -169,7 +207,9 @@ function Home() {
                         <br />
                         Your choice.
                         <br />
-                        <span>Delivered.</span>
+                        <span>
+                            Delivered.
+                        </span>
                     </h1>
 
                     <p className="hero-description">
@@ -191,6 +231,7 @@ function Home() {
                 </div>
 
             </section>
+
 
             {/* ========================================
                 CATEGORIES
@@ -214,22 +255,64 @@ function Home() {
 
                 </div>
 
-                <div className="categories">
 
-                    {categories.map((category) => (
+                {/* CATEGORY LOADING */}
 
-                        <CategoryCard
-                            key={category.id}
-                            id={category.id}
-                            name={category.name}
-                            image={category.image}
-                        />
+                {categoryLoading && (
 
-                    ))}
+                    <p className="products-message">
+                        Loading categories...
+                    </p>
 
-                </div>
+                )}
+
+
+                {/* CATEGORIES */}
+
+                {!categoryLoading &&
+                    categories.length > 0 && (
+
+                        <div className="categories">
+
+                            {categories.map(
+                                (category) => (
+
+                                    <CategoryCard
+                                        key={category.id}
+                                        id={category.id}
+                                        name={category.name}
+                                        image={
+                                            category.imageUrl
+                                                ? category.imageUrl.startsWith(
+                                                    "http"
+                                                )
+                                                    ? category.imageUrl
+                                                    : `/images/${category.imageUrl}`
+                                                : "/images/category-placeholder.jpg"
+                                        }
+                                    />
+
+                                )
+                            )}
+
+                        </div>
+
+                    )}
+
+
+                {/* NO CATEGORIES */}
+
+                {!categoryLoading &&
+                    categories.length === 0 && (
+
+                        <p className="products-message">
+                            No categories available.
+                        </p>
+
+                    )}
 
             </section>
+
 
             {/* ========================================
                 POPULAR PRODUCTS
@@ -251,6 +334,7 @@ function Home() {
 
                     </div>
 
+
                     <button
                         type="button"
                         className="view-all"
@@ -263,6 +347,7 @@ function Home() {
 
                 </div>
 
+
                 {/* LOADING */}
 
                 {loading && (
@@ -273,15 +358,18 @@ function Home() {
 
                 )}
 
+
                 {/* ERROR */}
 
-                {!loading && error && (
+                {!loading &&
+                    error && (
 
-                    <p className="products-error">
-                        {error}
-                    </p>
+                        <p className="products-error">
+                            {error}
+                        </p>
 
-                )}
+                    )}
+
 
                 {/* PRODUCTS */}
 
@@ -291,18 +379,21 @@ function Home() {
 
                         <div className="products">
 
-                            {products.map((product) => (
+                            {products.map(
+                                (product) => (
 
-                                <ProductCard
-                                    key={product.id}
-                                    product={product}
-                                />
+                                    <ProductCard
+                                        key={product.id}
+                                        product={product}
+                                    />
 
-                            ))}
+                                )
+                            )}
 
                         </div>
 
                     )}
+
 
                 {/* NO PRODUCTS */}
 
@@ -339,7 +430,10 @@ function App() {
 
                 <Routes>
 
-                    {/* HOME */}
+
+                    {/* ========================================
+                        HOME
+                    ======================================== */}
 
                     <Route
                         path="/"
@@ -351,100 +445,144 @@ function App() {
                         element={<Home />}
                     />
 
-                    {/* PRODUCTS */}
+
+                    {/* ========================================
+                        PRODUCTS
+                    ======================================== */}
 
                     <Route
                         path="/products"
                         element={<Products />}
                     />
 
-                    {/* PRODUCT DETAILS */}
+
+                    {/* ========================================
+                        PRODUCT DETAILS
+                    ======================================== */}
 
                     <Route
                         path="/products/:id"
                         element={<ProductDetails />}
                     />
 
-                    {/* CART */}
+
+                    {/* ========================================
+                        CART
+                    ======================================== */}
 
                     <Route
                         path="/cart"
                         element={<Cart />}
                     />
 
-                    {/* LOGIN */}
+
+                    {/* ========================================
+                        LOGIN
+                    ======================================== */}
 
                     <Route
                         path="/login"
                         element={<Login />}
                     />
 
-                    {/* REGISTER */}
+
+                    {/* ========================================
+                        REGISTER
+                    ======================================== */}
 
                     <Route
                         path="/register"
                         element={<Register />}
                     />
 
-                    {/* CHECKOUT */}
+
+                    {/* ========================================
+                        CHECKOUT
+                    ======================================== */}
 
                     <Route
                         path="/checkout"
                         element={<Checkout />}
                     />
 
-                    {/* ORDER SUCCESS */}
+
+                    {/* ========================================
+                        ORDER SUCCESS
+                    ======================================== */}
 
                     <Route
                         path="/order-success"
                         element={<OrderSuccess />}
                     />
 
-                    {/* ACCOUNT */}
+
+                    {/* ========================================
+                        ACCOUNT
+                    ======================================== */}
 
                     <Route
                         path="/account"
                         element={<Profile />}
                     />
 
-                    {/* ADDRESSES */}
+
+                    {/* ========================================
+                        ADDRESSES
+                    ======================================== */}
 
                     <Route
                         path="/addresses"
                         element={<Addresses />}
                     />
 
-                    {/* ORDERS */}
+
+                    {/* ========================================
+                        ORDERS
+                    ======================================== */}
 
                     <Route
                         path="/orders"
                         element={<Orders />}
                     />
 
-                    {/* ORDER DETAILS */}
+
+                    {/* ========================================
+                        ORDER DETAILS
+                    ======================================== */}
 
                     <Route
                         path="/orders/:id"
                         element={<OrderDetails />}
                     />
 
-                    {/* ADMIN LOGIN */}
+
+                    {/* ========================================
+                        ADMIN LOGIN
+                    ======================================== */}
 
                     <Route
                         path="/admin/login"
                         element={<AdminLogin />}
                     />
 
-                    {/* START */}
+
+                    {/* ========================================
+                        START
+                    ======================================== */}
 
                     <Route
                         path="/start"
                         element={<RoleSelection />}
                     />
 
-                    {/* PROTECTED ADMIN ROUTES */}
 
-                    <Route element={<AdminRoute />}>
+                    {/* ========================================
+                        PROTECTED ADMIN ROUTES
+                    ======================================== */}
+
+                    <Route
+                        element={<AdminRoute />}
+                    >
 
                         <Route
                             path="/admin"
@@ -458,7 +596,9 @@ function App() {
 
                         <Route
                             path="/admin/orders/:orderId"
-                            element={<AdminOrderDetails />}
+                            element={
+                                <AdminOrderDetails />
+                            }
                         />
 
                         <Route

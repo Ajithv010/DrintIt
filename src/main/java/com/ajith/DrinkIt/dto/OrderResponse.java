@@ -20,9 +20,31 @@ public class OrderResponse {
 
     private String status;
 
+    // =========================
+    // CUSTOMER
+    // =========================
+
+    private String customerName;
+
+    private String customerEmail;
+
+    private String customerPhone;
+
+    // =========================
+    // ORDER ITEMS
+    // =========================
+
     private List<OrderItemResponse> items;
 
+    // =========================
+    // TOTAL
+    // =========================
+
     private Double totalAmount;
+
+    // =========================
+    // DELIVERY ADDRESS
+    // =========================
 
     private AddressResponse deliveryAddress;
 }

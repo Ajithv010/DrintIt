@@ -66,7 +66,7 @@ function AdminDashboard() {
 
 
   // ========================================
-  // STATUS COUNTS
+  // STATUS
   // ========================================
 
   const getStatus = (order) =>
@@ -74,11 +74,13 @@ function AdminDashboard() {
       order?.status || "PENDING"
     ).toUpperCase();
 
+
   const pendingOrders =
     orders.filter(
       (order) =>
         getStatus(order) === "PENDING"
     ).length;
+
 
   const confirmedOrders =
     orders.filter(
@@ -86,11 +88,13 @@ function AdminDashboard() {
         getStatus(order) === "CONFIRMED"
     ).length;
 
+
   const deliveredOrders =
     orders.filter(
       (order) =>
         getStatus(order) === "DELIVERED"
     ).length;
+
 
   const cancelledOrders =
     orders.filter(
@@ -108,15 +112,18 @@ function AdminDashboard() {
     order?.orderId ??
     "";
 
+
   const getTotal = (order) =>
     order?.totalAmount ??
     order?.total ??
     0;
 
+
   const getItems = (order) =>
     order?.items ??
     order?.orderItems ??
     [];
+
 
   const getCustomerName = (order) => {
 
@@ -224,27 +231,30 @@ function AdminDashboard() {
   return (
     <main className="admin-dashboard-page">
 
+
       {/* ====================================
           HEADER
       ==================================== */}
 
       <header className="admin-dashboard-header">
 
-        <div>
+        <div className="admin-dashboard-heading">
 
           <p className="admin-dashboard-label">
-            DRINKIT ADMIN
+            STORE MANAGEMENT
           </p>
 
           <h1>
-            Dashboard
+            DrinkIt Admin
           </h1>
 
           <p className="admin-dashboard-subtitle">
-            Manage your DrinkIt store.
+            Manage your drinks, orders, customers,
+            and categories.
           </p>
 
         </div>
+
 
         <button
           type="button"
@@ -259,10 +269,39 @@ function AdminDashboard() {
 
 
       {/* ====================================
+          WELCOME SECTION
+      ==================================== */}
+
+      <section className="admin-welcome-section">
+
+        <div className="admin-welcome-content">
+
+          <p className="admin-section-label">
+            WELCOME BACK
+          </p>
+
+          <h2>
+            Manage your DrinkIt store
+          </h2>
+
+          <p>
+            Keep your products, orders and
+            customers running smoothly.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      {/* ====================================
           STATISTICS
       ==================================== */}
 
       <section className="admin-stat-grid">
+
+
+        {/* TOTAL ORDERS */}
 
         <div className="admin-stat-card">
 
@@ -281,6 +320,8 @@ function AdminDashboard() {
         </div>
 
 
+        {/* PENDING */}
+
         <div className="admin-stat-card">
 
           <div className="admin-stat-icon">
@@ -298,6 +339,8 @@ function AdminDashboard() {
         </div>
 
 
+        {/* CONFIRMED */}
+
         <div className="admin-stat-card">
 
           <div className="admin-stat-icon">
@@ -314,6 +357,8 @@ function AdminDashboard() {
 
         </div>
 
+
+        {/* DELIVERED */}
 
         <div className="admin-stat-card">
 
@@ -335,17 +380,18 @@ function AdminDashboard() {
 
 
       {/* ====================================
-          QUICK ACTIONS
+          MANAGEMENT
       ==================================== */}
 
       <section className="admin-section">
+
 
         <div className="admin-section-header">
 
           <div>
 
             <p className="admin-section-label">
-              MANAGEMENT
+              MANAGE YOUR STORE
             </p>
 
             <h2>
@@ -359,6 +405,9 @@ function AdminDashboard() {
 
         <div className="admin-action-grid">
 
+
+          {/* ORDERS */}
+
           <button
             type="button"
             className="admin-action-card"
@@ -369,7 +418,9 @@ function AdminDashboard() {
 
             <div>
 
-              <FiShoppingBag />
+              <div className="admin-action-icon">
+                <FiShoppingBag />
+              </div>
 
               <h3>
                 Manage Orders
@@ -386,6 +437,8 @@ function AdminDashboard() {
           </button>
 
 
+          {/* PRODUCTS */}
+
           <button
             type="button"
             className="admin-action-card"
@@ -396,7 +449,9 @@ function AdminDashboard() {
 
             <div>
 
-              <FiPackage />
+              <div className="admin-action-icon">
+                <FiPackage />
+              </div>
 
               <h3>
                 Products
@@ -413,6 +468,8 @@ function AdminDashboard() {
           </button>
 
 
+          {/* CATEGORIES */}
+
           <button
             type="button"
             className="admin-action-card"
@@ -423,14 +480,16 @@ function AdminDashboard() {
 
             <div>
 
-              <FiLayers />
+              <div className="admin-action-icon">
+                <FiLayers />
+              </div>
 
               <h3>
                 Categories
               </h3>
 
               <p>
-                Manage product categories.
+                Organize your drinks into categories.
               </p>
 
             </div>
@@ -439,6 +498,8 @@ function AdminDashboard() {
 
           </button>
 
+
+          {/* CUSTOMERS */}
 
           <button
             type="button"
@@ -450,14 +511,16 @@ function AdminDashboard() {
 
             <div>
 
-              <FiUsers />
+              <div className="admin-action-icon">
+                <FiUsers />
+              </div>
 
               <h3>
                 Customers
               </h3>
 
               <p>
-                View registered customers.
+                View your registered customers.
               </p>
 
             </div>
@@ -477,12 +540,13 @@ function AdminDashboard() {
 
       <section className="admin-section">
 
+
         <div className="admin-section-header">
 
           <div>
 
             <p className="admin-section-label">
-              ORDERS
+              ORDER ACTIVITY
             </p>
 
             <h2>
@@ -490,6 +554,7 @@ function AdminDashboard() {
             </h2>
 
           </div>
+
 
           <button
             type="button"
@@ -506,6 +571,7 @@ function AdminDashboard() {
 
 
         <div className="admin-order-overview">
+
 
           <div className="admin-overview-item">
 
@@ -569,12 +635,13 @@ function AdminDashboard() {
 
       <section className="admin-section">
 
+
         <div className="admin-section-header">
 
           <div>
 
             <p className="admin-section-label">
-              ORDERS
+              LATEST ACTIVITY
             </p>
 
             <h2>
@@ -582,6 +649,7 @@ function AdminDashboard() {
             </h2>
 
           </div>
+
 
           <button
             type="button"
@@ -630,6 +698,7 @@ function AdminDashboard() {
                   getItems(order);
 
                 return (
+
                   <button
                     type="button"
                     className="admin-recent-order"
@@ -641,18 +710,27 @@ function AdminDashboard() {
                     }
                   >
 
+
+                    {/* ORDER ICON */}
+
                     <div className="admin-recent-order-icon">
+
                       <FiPackage />
+
                     </div>
 
 
+                    {/* ORDER INFORMATION */}
+
                     <div className="admin-recent-order-main">
+
 
                       <div className="admin-recent-order-title">
 
                         <strong>
                           Order #{orderId}
                         </strong>
+
 
                         <span
                           className={`admin-order-status ${status.toLowerCase()}`}
@@ -678,6 +756,8 @@ function AdminDashboard() {
                     </div>
 
 
+                    {/* TOTAL */}
+
                     <div className="admin-recent-order-right">
 
                       <strong>
@@ -689,6 +769,7 @@ function AdminDashboard() {
                     </div>
 
                   </button>
+
                 );
               }
             )}
