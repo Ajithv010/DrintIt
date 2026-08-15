@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 import api from "../services/api";
 
 function Login() {

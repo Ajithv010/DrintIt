@@ -255,53 +255,7 @@ function AdminOrderDetails() {
 
           <div className="admin-address-details">
 
-            {address ? (
-
-              typeof address === "string" ? (
-
-                <p>
-                  {address}
-                </p>
-
-              ) : (
-
-                <>
-                  <strong>
-                    {address.fullName ||
-                      address.name ||
-                      ""}
-                  </strong>
-
-                  <span>
-                    {address.addressLine1 ||
-                      address.address ||
-                      ""}
-                  </span>
-
-                  <span>
-                    {address.addressLine2 ||
-                      ""}
-                  </span>
-
-                  <span>
-                    {address.city || ""}
-                    {address.city &&
-                    address.state
-                      ? ", "
-                      : ""}
-                    {address.state || ""}
-                  </span>
-
-                  <span>
-                    {address.pincode ||
-                      address.zipCode ||
-                      ""}
-                  </span>
-                </>
-
-              )
-
-            ) : (
+            {address ? renderAddressContent(address) : (
 
               <p>
                 Delivery address not available.

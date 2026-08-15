@@ -8,7 +8,8 @@ function CategoryCard({ id, name, image }) {
   };
 
   return (
-    <div
+    <button
+      type="button"
       className="category-card"
       onClick={handleClick}
     >
@@ -18,7 +19,7 @@ function CategoryCard({ id, name, image }) {
       />
 
       <h3>{name}</h3>
-    </div>
+    </button>
   );
 }
 

@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
 import { saveCart } from "../services/cartStorage";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 
 function Cart() {
   const navigate = useNavigate();

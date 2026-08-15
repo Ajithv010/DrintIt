@@ -8,7 +8,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import api from "../services/api";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 
 function Navbar() {
   const navigate = useNavigate();

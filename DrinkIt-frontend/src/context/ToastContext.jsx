@@ -1,23 +1,28 @@
 import {
   createContext,
-  useContext,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 
 import Toast from "../components/Toast";
 
-const ToastContext = createContext(null);
+export const ToastContext =
+  createContext(null);
 
 export function ToastProvider({ children }) {
-  const [toast, setToast] = useState(null);
+
+  const [toast, setToast] =
+    useState(null);
 
   const showToast = useCallback(
     (message, type = "success") => {
+
       setToast({
         message,
         type,
       });
+
     },
     []
   );
@@ -26,12 +31,17 @@ export function ToastProvider({ children }) {
     setToast(null);
   }, []);
 
+  const value = useMemo(
+    () => ({
+      showToast,
+      hideToast,
+    }),
+    [showToast, hideToast]
+  );
+
   return (
     <ToastContext.Provider
-      value={{
-        showToast,
-        hideToast,
-      }}
+      value={value}
     >
       {children}
 
@@ -42,18 +52,7 @@ export function ToastProvider({ children }) {
           onClose={hideToast}
         />
       )}
+
     </ToastContext.Provider>
   );
-}
-
-export function useToast() {
-  const context = useContext(ToastContext);
-
-  if (!context) {
-    throw new Error(
-      "useToast must be used inside ToastProvider"
-    );
-  }
-
-  return context;
 }

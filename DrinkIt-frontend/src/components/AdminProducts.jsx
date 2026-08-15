@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 import api from "../services/api";
 import "./AdminProducts.css";
 
@@ -92,49 +92,33 @@ function AdminProducts() {
   };
 
   // ========================================
+  // EXTRACT ARRAY DATA
+  // ========================================
+
+  const extractArrayData = (data) => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.content)) return data.content;
+    if (Array.isArray(data?.categories)) return data.categories;
+    if (Array.isArray(data?.products)) return data.products;
+    return [];
+  };
+
+  // ========================================
   // LOAD CATEGORIES
   // ========================================
 
   const loadCategories = async () => {
     try {
       setCategoryLoading(true);
-
-      const response =
-        await api.get("/categories");
-
-      const data = response.data;
-
-      if (Array.isArray(data)) {
-        setCategories(data);
-      } else if (
-        Array.isArray(data?.content)
-      ) {
-        setCategories(data.content);
-      } else if (
-        Array.isArray(data?.categories)
-      ) {
-        setCategories(data.categories);
-      } else {
-        setCategories([]);
-      }
-
+      const response = await api.get("/categories");
+      setCategories(extractArrayData(response.data));
     } catch (err) {
-      console.error(
-        "Error loading categories:",
-        err
-      );
-
+      console.error("Error loading categories:", err);
       const errorMessage =
         err.response?.data?.message ||
         "Unable to load categories.";
-
       setError(errorMessage);
-
-      showToast(
-        errorMessage,
-        "error"
-      );
-
+      showToast(errorMessage, "error");
     } finally {
       setCategoryLoading(false);
     }
@@ -343,10 +327,7 @@ function AdminProducts() {
       return;
     }
 
-    if (
-      imagePreview &&
-      imagePreview.startsWith("blob:")
-    ) {
+    if (imagePreview?.startsWith("blob:")) {
       URL.revokeObjectURL(
         imagePreview
       );
@@ -365,10 +346,7 @@ function AdminProducts() {
   // ========================================
 
   const removeSelectedImage = () => {
-    if (
-      imagePreview &&
-      imagePreview.startsWith("blob:")
-    ) {
+    if (imagePreview?.startsWith("blob:")) {
       URL.revokeObjectURL(
         imagePreview
       );
@@ -397,10 +375,7 @@ function AdminProducts() {
   // ========================================
 
   const resetForm = () => {
-    if (
-      imagePreview &&
-      imagePreview.startsWith("blob:")
-    ) {
+    if (imagePreview?.startsWith("blob:")) {
       URL.revokeObjectURL(
         imagePreview
       );
@@ -833,12 +808,12 @@ if (editingId !== null) {
   // UI
   // ========================================
 
+  const isUpdating = editingId !== null;
+  const updateLabel = isUpdating ? "Update Product" : "Add Product";
   const submitLabel =
     saving
       ? "Saving..."
-      : editingId !== null
-      ? "Update Product"
-      : "Add Product";
+      : updateLabel;
 
   return (
     <main className="admin-products-page">

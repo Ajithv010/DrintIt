@@ -4,7 +4,7 @@ import { FiArrowLeft, FiPackage } from "react-icons/fi";
 
 import "./Orders.css";
 import api from "../services/api";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 
 function Orders() {
   const navigate = useNavigate();
@@ -270,7 +270,8 @@ function Orders() {
             "PLACED";
 
           return (
-            <article
+            <button
+              type="button"
               className="order-card"
               key={orderId}
               onClick={() =>
@@ -389,7 +390,7 @@ function Orders() {
 
               </div>
 
-            </article>
+            </button>
           );
         })}
 

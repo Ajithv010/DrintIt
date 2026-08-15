@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FiArrowLeft,
   FiPackage,
   FiLogOut,
   FiMapPin,
@@ -9,7 +8,7 @@ import {
 
 import "./Profile.css";
 import api from "../services/api";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 
 function Profile() {
   const navigate = useNavigate();
@@ -81,8 +80,6 @@ function Profile() {
     <main className="profile-page">
 
       {/* BACK */}
-
-   
 
       {/* HEADER */}
 

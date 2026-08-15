@@ -7,7 +7,7 @@ import {
 
 import api from "../services/api";
 import "./OrderDetails.css";
-import { useToast } from "../context/ToastContext";
+import { useToast } from "../context/useToast";
 
 function OrderDetails() {
   const { id } = useParams();
