@@ -533,12 +533,18 @@ function Checkout() {
                 <div className="checkout-product-image">
 
                   <img
-                    src={
-                      item.imageUrl?.startsWith("http")
-                        ? item.imageUrl
-                        : `/images/${item.imageUrl}`
-                    }
+                src={
+    item.imageUrl?.startsWith("http://") ||
+    item.imageUrl?.startsWith("https://")
+        ? item.imageUrl
+        : `/images/${item.imageUrl}`
+}
                     alt={item.productName}
+                   onError={(event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src =
+        "/images/default-drink.png";
+}}
                   />
 
                 </div>

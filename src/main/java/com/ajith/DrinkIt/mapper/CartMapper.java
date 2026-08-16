@@ -37,11 +37,14 @@ public class CartMapper {
 
         Double subtotal = price * item.getQuantity();
 
+        String imageUrl = item.getProduct().getImageUrl();
+
         return new CartItemResponse(
                 item.getProduct().getId(),
                 item.getProduct().getName(),
                 price,
                 item.getQuantity(),
-                subtotal);
+                subtotal,
+                imageUrl);
     }
 }

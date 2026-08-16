@@ -11,6 +11,32 @@ import {
 import api from "../services/api";
 import "./AdminOrderDetails.css";
 
+function renderAddressContent(address) {
+  return (
+    <>
+      <strong>
+        {address.fullName || "—"}
+      </strong>
+
+      <span>
+        {address.phoneNumber || "—"}
+      </span>
+
+      <span>
+        {address.addressLine || "—"}
+      </span>
+
+      <span>
+        {address.city || "—"}
+      </span>
+
+      <span>
+        {address.state || "—"} - {address.pincode || "—"}
+      </span>
+    </>
+  );
+}
+
 function AdminOrderDetails() {
   const navigate = useNavigate();
   const { orderId } = useParams();
@@ -26,7 +52,7 @@ function AdminOrderDetails() {
         setError("");
 
         const response = await api.get(
-          `/orders/admin/${orderId}`
+          `/admin/orders/${orderId}`
         );
 
         console.log(

@@ -32,7 +32,7 @@ function ProductCard({ product }) {
         }
 
         // If imageUrl is only a filename
-        return `/images/${product.imageUrl}`;
+       return `/images/${product.imageUrl}`;
     };
 
     // ========================================
@@ -128,10 +128,11 @@ function ProductCard({ product }) {
                 <img
                     src={getImageUrl()}
                     alt={product.name}
-                    onError={(event) => {
-                        event.currentTarget.src =
-                            "/images/default-drink.png";
-                    }}
+                  onError={(event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src =
+        "/images/default-drink.png";
+}}
                 />
 
             </div>

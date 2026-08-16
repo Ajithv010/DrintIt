@@ -35,6 +35,18 @@ public class AdminOrderController {
     }
 
     // =========================
+    // GET ORDER BY ID
+    // =========================
+
+    @GetMapping("/{orderId}")
+    public ResponseEntity<OrderResponse> getOrderById(
+            @PathVariable Long orderId) {
+
+        return ResponseEntity.ok(
+                orderService.getAdminOrderById(orderId));
+    }
+
+    // =========================
     // UPDATE ORDER STATUS
     // =========================
 

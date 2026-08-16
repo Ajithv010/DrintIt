@@ -365,7 +365,12 @@ function Cart() {
               <div className="cart-item-image">
 
                 <img
-                  src={`/images/${item.imageUrl}`}
+                  src={
+                    item.imageUrl?.startsWith("http://") ||
+                    item.imageUrl?.startsWith("https://")
+                      ? item.imageUrl
+                      : `/images/${item.imageUrl}`
+                  }
                   alt={item.productName}
                 />
 
