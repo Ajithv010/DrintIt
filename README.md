@@ -70,6 +70,98 @@ DrinkIt supports different beverage categories such as:
 - Git
 - GitHub
 - VS Code
+# DrinkIt 🥤
+
+DrinkIt is a full-stack **beverage e-commerce platform** built using React, Java, Spring Boot, Spring Security, JWT, Hibernate/JPA, and MySQL.
+
+The application provides a complete online shopping experience where customers can browse products, manage their cart, place orders, and manage their profiles. Administrators can manage products, categories, stock, and customer orders.
+
+---
+
+## Features
+
+### Customer
+
+- User registration and login
+- JWT-based authentication
+- Browse beverage categories
+- Search and filter products
+- View product details
+- Add products to cart
+- Update cart quantities
+- Remove cart items
+- Clear cart
+- Manage delivery addresses
+- Checkout
+- Place orders
+- View order history
+- View order details
+- Cancel orders where supported
+- Manage profile
+- Logout
+
+### Admin
+
+- Admin dashboard
+- Category management
+- Category image upload
+- Product management
+- Product image upload
+- Stock management
+- Activate/deactivate products
+- Activate/deactivate categories
+- View customer orders
+- View order details
+- Update order status
+
+---
+
+## Beverage Categories
+
+DrinkIt supports different beverage categories such as:
+
+- Juices
+- Soft Drinks
+- Energy Drinks
+- Water
+- Milkshakes
+- Cold Coffee
+- Lemonades & Coolers
+- Sports Drinks
+
+---
+
+## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- React Router
+- Axios
+- React Icons
+
+### Backend
+
+- Java 26
+- Spring Boot
+- Spring Security
+- JWT
+- Hibernate / JPA
+- Spring Data JPA
+
+### Database
+
+- MySQL
+
+### Build & Tools
+
+- Maven
+- Git
+- GitHub
+- VS Code
+
+---
 
 ## Project Structure
 
@@ -78,65 +170,7 @@ DrintIt/
 ├── src/                    # Spring Boot backend
 ├── DrinkIt-frontend/      # React frontend
 ├── pom.xml                # Maven configuration
-├── mvnw
-├── mvnw.cmd
+├── mvnw                   # Maven wrapper for Linux/macOS
+├── mvnw.cmd               # Maven wrapper for Windows
 ├── .gitignore
 └── README.md
-
-## Application Flow
-
-Customer
-   ↓
-React Frontend
-   ↓
-Axios / REST API
-   ↓
-Spring Boot Backend
-   ↓
-Spring Data JPA / Hibernate
-   ↓
-MySQL
-
-## Authentication
-
-DrinkIt uses **Spring Security and JWT** for secure authentication and role-based authorization.
-
-- Customer and admin access are separated
-- Protected APIs require authentication
-- JWT is used for authenticated requests
-
-## Getting Started
-
-### Prerequisites
-
-Make sure you have installed:
-
-- Java 26
-- Node.js
-- npm
-- MySQL
-- Git
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/Ajithv010/DrintIt.git
-cd DrintIt
-
-## Getting Started
-
-### Prerequisites
-
-Make sure you have installed:
-
-- Java 26
-- Node.js
-- npm
-- MySQL
-- Git
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/Ajithv010/DrintIt.git
-cd DrintIt
