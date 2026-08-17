@@ -61,7 +61,7 @@ DrinkIt supports different beverage categories such as:
 - JWT
 - Hibernate / JPA
 - Spring Data JPA
-- Maven
+  
 
 **Database**
 - MySQL
