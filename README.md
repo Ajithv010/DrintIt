@@ -1,8 +1,21 @@
 # DrinkIt 🥤
 
-DrinkIt is a full-stack **non-alcoholic beverage e-commerce platform** built with React, Java, Spring Boot, Spring Security, JWT, Hibernate/JPA, and MySQL.
+DrinkIt is a full-stack **beverage e-commerce platform** built using React, Java, Spring Boot, Spring Security, JWT, Hibernate/JPA, and MySQL.
 
-It allows customers to browse beverages, manage their cart, place orders, and manage their profile. Administrators can manage products, categories, stock, and customer orders.
+The application provides a complete online shopping experience where customers can browse products, manage their cart, place orders, and manage their profiles. Administrators can manage products, categories, stock, and customer orders.
+
+## Beverage Categories
+
+DrinkIt supports different beverage categories such as:
+
+- Juices
+- Soft Drinks
+- Energy Drinks
+- Water
+- Milkshakes
+- Cold Coffee
+- Lemonades & Coolers
+- Sports Drinks
 
 ## Features
 
