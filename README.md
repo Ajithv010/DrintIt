@@ -1,30 +1,26 @@
-# DrinkIt
+# DrinkIt 🥤
 
-DrinkIt is a full-stack, non-alcoholic beverage e-commerce platform built with React, Vite, Java, Spring Boot, Spring Security, JWT, Hibernate/JPA and MySQL.
+DrinkIt is a full-stack **non-alcoholic beverage e-commerce platform** built with React, Java, Spring Boot, Spring Security, JWT, Hibernate/JPA, and MySQL.
 
-## Overview
+It allows customers to browse beverages, manage their cart, place orders, and manage their profile. Administrators can manage products, categories, stock, and customer orders.
 
-DrinkIt provides an end-to-end beverage ordering experience with separate customer and administrator workflows.
+## Features
 
-### Customer Features
+### Customer
 
 - Registration and login
+- JWT authentication
 - Browse beverage categories
-- Browse, search and filter products
-- Product details
-- Shopping cart
-- Quantity updates
-- Remove and clear cart
-- Delivery address management
-- Checkout
-- Order placement
-- Order history
-- Order details
-- Order cancellation where supported
+- Search and filter products
+- View product details
+- Add and manage cart items
+- Manage delivery addresses
+- Checkout and place orders
+- View order history and order details
+- Cancel orders where supported
 - Profile management
-- Logout
 
-### Admin Features
+### Admin
 
 - Admin dashboard
 - Category management
@@ -32,55 +28,102 @@ DrinkIt provides an end-to-end beverage ordering experience with separate custom
 - Product management
 - Product image upload
 - Stock management
-- Product/category activation
-- Order management
-- Order detail view
-- Order status updates
+- Activate/deactivate products and categories
+- View and manage customer orders
+- Update order status
 
-## Beverage Categories
+## Tech Stack
 
-DrinkIt is designed specifically for non-alcoholic beverages.
+**Frontend**
+- React
+- Vite
+- React Router
+- Axios
+- React Icons
 
-Examples include:
+**Backend**
+- Java 26
+- Spring Boot
+- Spring Security
+- JWT
+- Hibernate / JPA
+- Spring Data JPA
+- Maven
 
-- Juices
-- Soft Drinks
-- Energy Drinks
-- Water
-- Milkshakes
-- Cold Coffee
-- Lemonades & Coolers
-- Sports Drinks
+**Database**
+- MySQL
 
-## Technology Stack
+**Tools**
+- Git
+- GitHub
+- VS Code
 
-| Layer | Technology |
-|---|---|
-| Frontend | React, Vite |
-| Routing | React Router |
-| HTTP Client | Axios |
-| UI Icons | React Icons |
-| Backend | Java, Spring Boot |
-| Security | Spring Security, JWT |
-| ORM | Hibernate / Spring Data JPA |
-| Database | MySQL |
-| Build Tool | Maven |
-| Version Control | Git / GitHub |
-
-## Architecture
+## Project Structure
 
 ```text
-React + Vite
-     |
-     | Axios / REST API
-     v
-Spring Boot
-     |
-     +-- Controllers
-     +-- Services
-     +-- DTOs / Mappers
-     +-- Repositories
-     +-- Security
-     |
-     v
+DrintIt/
+├── src/                    # Spring Boot backend
+├── DrinkIt-frontend/      # React frontend
+├── pom.xml                # Maven configuration
+├── mvnw
+├── mvnw.cmd
+├── .gitignore
+└── README.md
+
+## Application Flow
+
+Customer
+   ↓
+React Frontend
+   ↓
+Axios / REST API
+   ↓
+Spring Boot Backend
+   ↓
+Spring Data JPA / Hibernate
+   ↓
 MySQL
+
+## Authentication
+
+DrinkIt uses **Spring Security and JWT** for secure authentication and role-based authorization.
+
+- Customer and admin access are separated
+- Protected APIs require authentication
+- JWT is used for authenticated requests
+
+## Getting Started
+
+### Prerequisites
+
+Make sure you have installed:
+
+- Java 26
+- Node.js
+- npm
+- MySQL
+- Git
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Ajithv010/DrintIt.git
+cd DrintIt
+
+## Getting Started
+
+### Prerequisites
+
+Make sure you have installed:
+
+- Java 26
+- Node.js
+- npm
+- MySQL
+- Git
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Ajithv010/DrintIt.git
+cd DrintIt
