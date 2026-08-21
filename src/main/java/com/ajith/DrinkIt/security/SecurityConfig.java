@@ -84,6 +84,11 @@ public class SecurityConfig {
                                         // PUBLIC
                                         // ====================================
 
+                                        // Backend home/health endpoint
+                                        auth.requestMatchers(
+                                                        HttpMethod.GET,
+                                                        "/").permitAll();
+
                                         auth.requestMatchers(
                                                         HttpMethod.POST,
                                                         "/api/users/register").permitAll();
